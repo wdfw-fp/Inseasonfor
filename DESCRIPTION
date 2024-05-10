@@ -16,6 +16,10 @@ Imports:
     fpcDamCounts,
     ggplot2,
     lubridate,
+    Rcpp,
     rlang,
     tidyr,
     zoo
+LinkingTo: 
+    TMB,
+    RcppEigen
