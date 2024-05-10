@@ -25,28 +25,33 @@ bon_ch<-function(){
 
 
   dat<-fpcDamCounts::fpc_runsum(dam="BON",rpt="salmon",sdate="1980-01-01",edate="2050-12-31")|>
-    dplyr::select(CountDate,AdultChinook)
+    dplyr::select("CountDate","AdultChinook")
 
-  dat |>
-    dplyr::mutate(year=lubridate::year(CountDate),
-                  yday=lubridate::yday(CountDate),
-                  month=lubridate::month(CountDate),mday=lubridate::mday(CountDate),
+  dat<-dat |>
+    dplyr::mutate(year=lubridate::year(.data$CountDate),
+                  yday=lubridate::yday(.data$CountDate),
+                  month=lubridate::month(.data$CountDate),
+                  mday=lubridate::mday(.data$CountDate),
                   season=dplyr::case_when(
-                    month>=8~"fall",
-                    (month==7|(month==6&mday>15))~"summer",
-                    month>=3~"spring",
+                    .data$month>=8~"fall",
+                    (.data$month==7|(.data$month==6&.data$mday>15))~"summer",
+                    .data$month>=3~"spring",
                     TRUE~"Winter?"
                   )) |>
-    dplyr::filter(season==current_season) |>
-    dplyr::group_by(year) |>
-    dplyr::arrange(CountDate) |>
+    dplyr::filter(.data$season==current_season)
+
+    dplyr::left_join(tidyr::expand(dat,.data$year,tidyr::nesting("month","mday")),dat) |>
+    dplyr::group_by(.data$year) |>
+    dplyr::arrange(.data$year,.data$month,.data$mday) |>
     dplyr::mutate(
-      total=cumsum(AdultChinook),
-      prop=total/sum(AdultChinook)
+      total=cumsum(.data$AdultChinook),
+      prop=.data$total/sum(.data$AdultChinook)
     ) |>
-    dplyr::group_by(month,mday) |>
-    dplyr::mutate(Ave_5yr=dplyr::lag(zoo::rollmean(prop,k=5,align="right",fill=NA_real_),1),
-                  Ave_10yr=dplyr::lag(zoo::rollmean(prop,k=10,align="right",fill=NA_real_),1),
-                  Pred_5=total/Ave_5yr,
-                  Pred_10=total/Ave_10yr)
+    dplyr::group_by(.data$month,.data$mday) |>
+    dplyr::mutate(Ave_5yr=dplyr::lag(zoo::rollmean(.data$prop,k=5,align="right",fill=NA_real_),1),
+                  Ave_10yr=dplyr::lag(zoo::rollmean(.data$prop,k=10,align="right",fill=NA_real_),1),
+                  Pred_5=.data$total/.data$Ave_5yr,
+                  Pred_10=.data$total/.data$Ave_10yr) |>
+    dplyr::ungroup()
 }
+

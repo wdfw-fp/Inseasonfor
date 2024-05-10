@@ -14,5 +14,8 @@ BugReports: https://github.com/marksorel8/Inseasonfor/issues
 Imports: 
     dplyr,
     fpcDamCounts,
+    ggplot2,
     lubridate,
+    rlang,
+    tidyr,
     zoo
