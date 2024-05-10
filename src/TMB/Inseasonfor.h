@@ -1,11 +1,11 @@
-#include <TMB.hpp>
-/* Parameter transform */
-template <class Type>
-Type f(Type x){return Type(2)/(Type(1) + exp(-Type(2) * x)) - Type(1);}
+/// @file Inseasonfor.hpp
+
+#undef TMB_OBJECTIVE_PTR
+#define TMB_OBJECTIVE_PTR obj
+
 
 template<class Type>
-Type objective_function<Type>::operator() ()
-{
+Type Inseasonfor(objective_function<Type>* obj) {
   DATA_VECTOR(logjCK);
   DATA_VECTOR(Delta_logjCK);
   DATA_VECTOR(lag_logCK4);
@@ -77,7 +77,7 @@ Type objective_function<Type>::operator() ()
 
   // in-season AR1 year effect
   using namespace density;
-  Type phi2=f(phi);
+  Type phi2=Type(2)/(Type(1) + exp(-Type(phi) * x)) - Type(1);
   Type tau_proc_err2 = exp(tau_proc_err);
   NLL += SCALE(AR1(phi2),tau_proc_err2)(year_eff);
   ////observation models
@@ -119,3 +119,6 @@ Type objective_function<Type>::operator() ()
   // REPORT(CK);
   return (NLL);
 }
+
+#undef TMB_OBJECTIVE_PTR
+#define TMB_OBJECTIVE_PTR this

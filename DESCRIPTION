@@ -19,7 +19,7 @@ Imports:
     Rcpp,
     rlang,
     tidyr,
+    TMB (>= 1.9.10),
     zoo
 LinkingTo: 
-    TMB,
-    RcppEigen
+    TMB
