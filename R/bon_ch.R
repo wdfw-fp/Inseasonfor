@@ -24,10 +24,11 @@ bon_dat_fun<-function(pred_date=NULL,
   #fetch data
 
   if (file.exists(count_file)) {
-    local_data <- readr::read_csv(count_file) |> tidyr::drop_na()
+    local_data <-
+      readr::read_csv(count_file) |> tidyr::drop_na()
 
-    sdate <- max(local_data$date)+1
-
+    sdate <- max(local_data$CountDate  )+1
+  #
   } else {
     local_data<-NULL
     sdate<-"1980-01-01"
@@ -76,7 +77,16 @@ bon_dat_fun<-function(pred_date=NULL,
 #' @export
 #'
 #' @examples
-Bon_ch_fun<-function(pred_date=NULL){
+Bon_ch_fun<-function(pred_date=NULL,
+                     dat){
+  if(is.null(pred_date)){
+    pred_date<-max(dat$CountDate)
+  }else{
+    if(pred_date>max(dat$CountDate)){
+      errorCondition("the chosen date is greater than the maximum in the data set")
+    }
+  }
+
 
   current_season<-if(lubridate::month(pred_date)<6|lubridate::month(pred_date)==6&lubridate::day(pred_date)<=15){
     "spring"
@@ -102,38 +112,40 @@ Bon_ch_fun<-function(pred_date=NULL){
     dplyr::mutate(Ave_5yr=dplyr::lag(zoo::rollmean(.data$prop,k=5,align="right",fill=NA_real_),1),
                   Ave_10yr=dplyr::lag(zoo::rollmean(.data$prop,k=10,align="right",fill=NA_real_),1)) |>
     dplyr::ungroup() |>
-    filter(year>=lubridate::year(pred_date)-16)
+    dplyr::filter(year>=lubridate::year(pred_date)-16)
 
   dat3<-dat2 |>
-    group_by(year) |>
-    mutate(
+    dplyr::group_by(year) |>
+    dplyr::mutate(
       #lags
-      !!!set_names(
-        list_flatten(
-          map(c("Ave_5yr","Ave_10yr"), function(col) {
-            map(1:10, function(k) {
-              expr(lag(!!sym(col), !!k))
+      !!!purrr::set_names(
+        purrr::list_flatten(
+          purrr::map(c("Ave_5yr","Ave_10yr"), function(col) {
+            purrr::map(1:10, function(k) {
+              dplyr::expr(dplyr::lag(!!dplyr::sym(col), !!k))
             })
           })
         ),
-        flatten_chr(map(c("Ave_5yr","Ave_10yr"), ~ paste0(.x,"_", 1:10,"_days_late")))
+        purrr::flatten_chr(purrr::map(c("Ave_5yr","Ave_10yr"), ~ paste0(.x,"_", 1:10,"_days_late")))
       ),
       #leads
-      !!!set_names(
-        list_flatten(
-          map(c("Ave_5yr","Ave_10yr"), function(col) {
-            map(1:10, function(k) {
-              expr(lead(!!sym(col), !!k))
+      !!!purrr::set_names(
+        purrr::list_flatten(
+          purrr::map(c("Ave_5yr","Ave_10yr"), function(col) {
+            purrr::map(1:10, function(k) {
+              dplyr::expr(dplyr::lead(!!dplyr::sym(col), !!k))
             })
           })
         ),
-        flatten_chr(map(c("Ave_5yr","Ave_10yr"), ~ paste0(.x,"_", 1:10,"_days_early")))
+        purrr::flatten_chr(purrr::map(c("Ave_5yr","Ave_10yr"), ~ paste0(.x,"_", 1:10,"_days_early")))
       )
     ) |>
-    ungroup()
+    dplyr::ungroup()
 
 
-  dat3 |> mutate(across(Ave_5yr:dplyr::last_col(),\(x){.data$total/x}, .names = "pred_{.col}"))
+  dat3 |> dplyr::mutate(dplyr::across(Ave_5yr:dplyr::last_col(),\(x){.data$total/x}, .names = "pred_{.col}"))
 
 
 }
+
+
