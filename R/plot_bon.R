@@ -34,6 +34,6 @@ plot_bon<-function(dat, forecast=114867){
 
 
 
-    ggplot2::ggplot(plot_dat2,mapping =ggplot2::aes(x=.data$date,y=.data$AdultChinook,color=.data$year,linetype=.data$year))+ggplot2::geom_line(lwd=1.5)+ggplot2::scale_color_manual(values=c("mediumpurple4","cadetblue","black","darkblue"))+ggplot2::theme_classic() +ggplot2::scale_x_date(date_labels = "%m/%d")+ggplot2::scale_linetype_manual(values = c(1,1,1,5))
+    ggplot2::ggplot(plot_dat2,mapping =ggplot2::aes(x=.data$date,y=.data$AdultChinook,color=.data$year,linetype=.data$year))+ggplot2::geom_line(lwd=1)+ggplot2::scale_color_manual(values=c("mediumpurple4","cadetblue","black","darkblue"))+ggplot2::theme_classic() +ggplot2::scale_x_date(date_labels = "%m/%d")+ggplot2::scale_linetype_manual(values = c(1,1,1,5))
 
 }
