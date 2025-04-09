@@ -4,7 +4,7 @@
 \alias{Bon_ch_fun}
 \title{Calculates predictions based on 5 and 10 year average run timing.}
 \usage{
-Bon_ch_fun(pred_date = NULL)
+Bon_ch_fun(pred_date = NULL, dat)
 }
 \arguments{
 \item{dat}{}

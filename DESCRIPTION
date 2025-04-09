@@ -13,13 +13,13 @@ URL: https://github.com/marksorel8/Inseasonfor
 BugReports: https://github.com/marksorel8/Inseasonfor/issues
 Imports: 
     dplyr,
-    fpcDamCounts,
     ggplot2,
     lubridate,
     purrr,
     Rcpp,
     readr,
     rlang,
+    testthat,
     tidyr,
     TMB (>= 1.9.10),
     zoo

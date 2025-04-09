@@ -1,0 +1,4 @@
+name: ECF Model Report
+description: >
+   Outputputs of the ECF Chinook quota planning model
+create_dir: FALSE
