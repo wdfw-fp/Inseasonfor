@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 forecastdate <- lubridate::today()-1
 forecast_season<-chk_season(forecastdate)
 forecast_year<-lubridate::year(forecastdate)
+forecast_month<-lubridate::month(forecastdate)
+forecast_md<-lubridate::mday(forecastdate)
 
 ```
 
@@ -36,7 +38,50 @@ counts_through<- bon_yr_seas %>%  dplyr::pull(CountDate) %>% max()
 
 
 # flow temp data
-flow_temp_dat<-get_flow_data(forecastdate = lubridate::today()-1,start_month = 3,flow_file = "flow_temp_dat.csv")
+flow_temp_dat<-get_flow_data(forecastdate = lubridate::today()-1,flow_file = "flow_temp_dat.csv") |> 
+  flow_ema_fun(start_month = 2)
+
+#fish data combined with river and ocean covariates for modeling
+fish_river_ocean<-dplyr::inner_join(flow_temp_dat |>
+                                dplyr::filter(month==forecast_month,
+                                              md==forecast_md) |> 
+                                dplyr::select(year=Year,cfs_mean,temp_mean),
+                              cnts_for_mod_fun(counts_through,Bon_cnts)) |> 
+   dplyr::left_join(ocean_cov_fun(forecast_year) |> 
+                      dplyr::mutate(Year=Year+2) |> dplyr::select(year=Year,lag2_Spr_NPGO = Spr_NPGO, lag2_Spr_PDO = Spr_PDO, lag2_Sum_NPGO = Sum_NPGO, lag2_Sum_PDO = Sum_PDO)
+   )
+
+
+
+
+
+fish_river_ocean |> colnames()
+
+pen_dlm_forecast<-forecast_fun(
+  df = summer_chinook_2024,
+  include = c("PenDlm"),
+  transformation = log,
+  inverse_transformation = exp,
+  scale_x = TRUE,
+  scale_y = TRUE,
+  perf_yrs = 15,
+  wt_yrs = 1,
+)
+
+
+pen_dlm_forecast_cov<-forecast_fun(
+  df = summer_chinook_2024,
+  include = c("PenDlm"),
+  transformation = log,
+  inverse_transformation = exp,
+  scale_x = TRUE,
+  scale_y = TRUE,
+  perf_yrs = 15,
+  wt_yrs = 1,
+  covariates = covariates_24,
+  penDLM_formula =formula("y~ x + lag2_PDO + lag2_NPGO")
+)
+
 
 
 ```
@@ -44,18 +89,18 @@ flow_temp_dat<-get_flow_data(forecastdate = lubridate::today()-1,start_month = 3
 
 ```{r plot_cnts_env}
 flow_temp_dat %>%
-                     dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_mean , `River temp. (F)`=temp_mean) |> 
+  dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_mean , `River temp. (F)`=temp_mean) |> 
   dplyr::mutate(Date=as.Date(Date)) |> 
   dplyr::inner_join(
     bon_yr_seas |> 
-  dplyr::select(Date=CountDate,`Adult count`=AdultChinook)
+      dplyr::select(Date=CountDate,`Adult count`=AdultChinook)
   ) |> 
   tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value") %>%
- ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=Param,shape=Param))+ ggplot2::geom_point(size=2.5,show.legend=FALSE)+ggplot2::geom_line(show.legend=FALSE)+ggplot2::facet_wrap(~Param,ncol=1,scales="free_y")+
+  ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=Param,shape=Param))+ ggplot2::geom_point(size=2.5,show.legend=FALSE)+ggplot2::geom_line(show.legend=FALSE)+ggplot2::facet_wrap(~Param,ncol=1,scales="free_y")+
   ggplot2::scale_color_manual(values=c("orangered4","navy","olivedrab"))+
   ggplot2::labs(y="",
-       col=NULL,
-       shape=NULL)+
+                col=NULL,
+                shape=NULL)+
   ggplot2::theme(legend.key=ggplot2::element_blank())
 ```
 
@@ -81,9 +126,9 @@ Bon_ch_year |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr*100),x=CountDate))+gg
 
 
 Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |> dplyr::mutate(date=(as.Date(paste(forecast_year,month,mday,sep="-")))) |> ggplot2::ggplot(ggplot2::aes(x=date,y=prop*100))+ggplot2::geom_boxplot(ggplot2::aes(group = date))+ ggplot2::scale_x_date(
-    date_breaks = "1 month",
-    date_labels = "%b"
-  )+ggplot2::geom_vline(ggplot2::aes(xintercept = counts_through),col="darkred",lty=2,lwd=1.1)+ggplot2::ylab("Percent complete")
+  date_breaks = "1 month",
+  date_labels = "%b"
+)+ggplot2::geom_vline(ggplot2::aes(xintercept = counts_through),col="darkred",lty=2,lwd=1.1)+ggplot2::ylab("Percent complete")
 
 ```
 
@@ -98,9 +143,9 @@ prop5yr_tab<-Bon_ch_year |> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountD
   dplyr::select(Date,Ave_5yr_10_days_early:Ave_5yr_1_days_early,Ave_5yr,Ave_5yr_1_days_late:Ave_5yr_10_days_late) |> 
   `colnames<-`(c("Date",paste(10:1,"Days Early"),"5yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)signif(x,2))) |>  knitr::kable(format = "html") |>
-    kableExtra::kable_styling(full_width = TRUE) |>
-    kableExtra::column_spec(12, background = "lightgrey")|>
-    kableExtra::row_spec(highlight_row, background = "lightgrey")
+  kableExtra::kable_styling(full_width = TRUE) |>
+  kableExtra::column_spec(12, background = "lightgrey")|>
+  kableExtra::row_spec(highlight_row, background = "lightgrey")
 
 htmltools::browsable(
   knitr::kable(prop5yr_tab, format = "html") |>
@@ -115,9 +160,9 @@ pred5yr_tab<-Bon_ch_year |> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountD
   dplyr::select(Date,pred_Ave_5yr_10_days_early:pred_Ave_5yr_1_days_early,pred_Ave_5yr,pred_Ave_5yr_1_days_late:pred_Ave_5yr_10_days_late) |> 
   `colnames<-`(c("Date",paste(10:1,"Days Early"),"5yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)format(round(x),scientific=FALSE, big.mark=","))) |>  knitr::kable(format = "html") |>
-    kableExtra::kable_styling(full_width = TRUE) |>
-    kableExtra::column_spec(12, background = "lightgrey")|>
-    kableExtra::row_spec(highlight_row, background = "lightgrey")
+  kableExtra::kable_styling(full_width = TRUE) |>
+  kableExtra::column_spec(12, background = "lightgrey")|>
+  kableExtra::row_spec(highlight_row, background = "lightgrey")
 
 htmltools::browsable(
   knitr::kable(pred5yr_tab, format = "html") |>
@@ -138,12 +183,12 @@ prop10yr_tab<-Bon_ch_year |> dplyr::ungroup()|>  dplyr::mutate(Date=format(Count
   dplyr::select(Date,Ave_10yr_10_days_early:Ave_10yr_1_days_early,Ave_10yr,Ave_10yr_1_days_late:Ave_5yr_10_days_late) |> 
   `colnames<-`(c("Date",paste(10:1,"Days Early"),"10yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)round(x,2))) |>  knitr::kable(format = "html") |>
-    kableExtra::kable_styling(full_width = TRUE) |>
-    kableExtra::column_spec(12, background = "lightgrey")|>
-    kableExtra::row_spec(highlight_row, background = "lightgrey")
+  kableExtra::kable_styling(full_width = TRUE) |>
+  kableExtra::column_spec(12, background = "lightgrey")|>
+  kableExtra::row_spec(highlight_row, background = "lightgrey")
 
 htmltools::browsable(
- prop10yr_tab |>
+  prop10yr_tab |>
     kableExtra::kable_styling()
 )
 ```
@@ -154,12 +199,12 @@ pred10yr_tab<-Bon_ch_year |> dplyr::ungroup()|>  dplyr::mutate(Date=format(Count
   dplyr::select(Date,pred_Ave_10yr_10_days_early:pred_Ave_10yr_1_days_early,pred_Ave_10yr,pred_Ave_10yr_1_days_late:pred_Ave_5yr_10_days_late) |> 
   `colnames<-`(c("Date",paste(10:1,"Days Early"),"10yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)round(x,2))) |>  knitr::kable(format = "html") |>
-    kableExtra::kable_styling(full_width = TRUE) |>
-    kableExtra::column_spec(12, background = "lightgrey")|>
-    kableExtra::row_spec(highlight_row, background = "lightgrey")
+  kableExtra::kable_styling(full_width = TRUE) |>
+  kableExtra::column_spec(12, background = "lightgrey")|>
+  kableExtra::row_spec(highlight_row, background = "lightgrey")
 
 htmltools::browsable(
- prop10yr_tab |>
+  prop10yr_tab |>
     kableExtra::kable_styling()
 )
 ```

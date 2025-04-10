@@ -21,7 +21,7 @@ chk_season<-function(day){
         month>=3,"spring",
         "Winter?")
     )
-    )
+  )
 }
 
 
@@ -178,7 +178,7 @@ get_usace_flow_temp_data <- function(forecastdate,startdate,dam="BON") {
 
   # Format dates as "MM/DD/YYYY 07:00", then URL encode
   start_str <- URLencode(paste0(format(startdate, "%m/%d/%Y"), " 07:00"))
-  end_str <- URLencode(paste0(format(forecastdate, "%m/%d/%Y"), " 07:00"))
+  end_str <- URLencode(paste0(format(forecastdate+2, "%m/%d/%Y"), " 07:00"))
 
   url <- paste0(
     "https://www.nwd-wc.usace.army.mil/dd/common/web_service/webexec/ecsv?id=",
@@ -200,18 +200,22 @@ get_usace_flow_temp_data <- function(forecastdate,startdate,dam="BON") {
                             temp= readr::col_double()),
     skip = 1 ) %>%
 
-    dplyr::transmute(Date = (date),
+    dplyr::transmute(Date = as.Date(date),
                      Year = lubridate::year(date),
                      day_nu = lubridate::yday(date),
                      `Flow (kcfs)`=kcfs,
-                     `River temp. (F)`=temp)# %>%
+                     `River temp. (F)`=temp) |>
+    dplyr::group_by(Date) |>
+    dplyr::summarise(dplyr::across(c( `Flow (kcfs)`,`River temp. (F)`),\(x)mean(x,na.rm=T))) |>
+    dplyr::ungroup()
+
 
 }
 
 #----------------------------------------------------------
 
 
-get_flow_data<-function(forecastdate=NULL,start_month=4,flow_file="flow_temp_dat.csv"){
+get_flow_data<-function(forecastdate=NULL,flow_file="flow_temp_dat.csv"){
 
 
 
@@ -237,23 +241,23 @@ get_flow_data<-function(forecastdate=NULL,start_month=4,flow_file="flow_temp_dat
     ##usgs
     # usgs_dat<- get_usgs_flow_data(forecastdate)
     ##CBR
-    CBR_DAT_Dat<- try( get_CBR_DART_flow_temp_data(forecastdate,start_year = lubridate::year(sdate))|>
+    CBR_DAT_Dat<- try( get_CBR_DART_flow_temp_data(edate,start_year = lubridate::year(sdate))|>
                          dplyr::filter(flw_date>=sdate))
 
 
     ##USACoE
-    USACoE_dat<-get_usace_flow_temp_data(forecastdate,startdate=as.Date(sdate),dam="BON") %>%
-      dplyr::rename(flw_date=  Date    ) %>% #make date column names match
+    USACoE_dat<-get_usace_flow_temp_data(edate,startdate=as.Date(sdate),dam="BON") %>%
+      dplyr::mutate(flw_date=  as.Date(Date)) %>% #make date column names match
       dplyr::mutate(cfs_USACoE=(round(`Flow (kcfs)`,0)*1000),
                     temp_f_ASACE=`River temp. (F)`) %>% #convert from kcfs to cfs and round to nearest throusandto match usgs data
-      dplyr::select(Year,flw_date,cfs_USACoE,temp_f_ASACE)#select columns of interest
+      dplyr::select(flw_date,cfs_USACoE,temp_f_ASACE)#select columns of interest
 
     #merge them where there is a column for each sources
     if(is.null(dim(CBR_DAT_Dat))) {
       all_dat<-USACoE_dat %>%
         dplyr::mutate(cfs_mean=cfs_USACoE,temp_mean=temp_f_ASACE)
     }else{
-      all_dat<-USACoE_dat %>% dplyr::left_join(CBR_DAT_Dat) %>%
+      all_dat<-USACoE_dat %>% dplyr::full_join(CBR_DAT_Dat,by="flw_date") %>%
         dplyr::mutate(cfs_mean=dplyr::select(.,c(cfs_USACoE,cfs_CBR)) %>% rowMeans(na.rm=T),
                       temp_mean=dplyr::select(.,c(temp_f_ASACE,temp_f_CBR)) %>% rowMeans(na.rm=T)
         )
@@ -272,17 +276,23 @@ get_flow_data<-function(forecastdate=NULL,start_month=4,flow_file="flow_temp_dat
 
 
 
-flow_ema_fun<-function(data){
+flow_ema_fun<-function(dat,start_month=2){
   dat %>%
-    mutate(Year=lubridate::year(flw_date),
-           month=lubridate::month(flw_date),
-           md=lubridate::mday(flw_date)) %>%
+    dplyr::mutate(Year=lubridate::year(flw_date),
+                  month=lubridate::month(flw_date),
+                  md=lubridate::mday(flw_date)) %>%
     dplyr::filter(month>=start_month) |>
     dplyr::group_by(Year) %>% dplyr::arrange(flw_date) %>%
 
     # calculate exponential moving avg of flow using ema fn above
-    dplyr::mutate(cfs_mean_ema=ema(cfs_mean, ratio=0.1)) %>%
-    dplyr::ungroup()
+    dplyr::mutate(cfs_mean_ema=ema(cfs_mean, ratio=0.1),
+                  temp_mean_ema=ema(temp_mean, ratio=0.1)) %>%
+    dplyr::ungroup()%>% dplyr::mutate(
+      month=lubridate::month(flw_date),
+      monthday=lubridate::mday(flw_date),
+      flw_date=as.Date(flw_date)
+    )
+
 }
 
 get_flow_day<-function(dat,day){
@@ -294,4 +304,91 @@ get_flow_day<-function(dat,day){
 
 
     dplyr::mutate(logCflow_mean_ema = (log(cfs_mean_ema) - mean(log(cfs_mean_ema), na.rm=T))/sd(log(cfs_mean_ema), na.rm=T))
+}
+
+
+
+#' make some ocean covariates
+#'
+#' @return
+#' @export
+#'
+#' @examples
+ocean_cov_fun<-function(pred_year,ocean_cov_file="PDO_NPGO.csv"){
+
+
+  if(file.exists(ocean_cov_file)){
+    local_dat<-readr::read_csv(ocean_cov_file)
+  }else{
+    local_dat<-data.frame(Year=-1)
+  }
+
+  if((max(local_dat$Year)<pred_year)){
+    dat<- readr::read_table("https://www.o3d.org/npgo/data/NPGO.txt", skip = 29, col_names = FALSE, comment = "#") |>
+      dplyr::filter(!is.na(X2)) |>
+      dplyr::rename(Year = X1, Month = X2, NPGO = X3) |>
+      dplyr::mutate(dplyr::across(c(Year, Month), \(x) as.integer(as.numeric(x))),
+                    NPGO=round(NPGO,4))|>
+
+      dplyr::left_join(
+        readr::read_table("https://psl.noaa.gov/pdo/data/pdo.timeseries.ersstv5.csv", skip = 1, col_names = FALSE, comment = "#") |>
+          dplyr::rename(Date = X1, PDO = X2) |>
+          dplyr::filter(!PDO < -99) |>
+          dplyr::mutate(
+            Date = as.Date(Date),
+            Month = lubridate::month(Date),
+            Year = as.integer(lubridate::year(Date),
+                              PDO=round(PDO,4))
+          ) |>
+          dplyr::select(-Date)
+      ) |>
+
+      dplyr::mutate(
+        Year = ifelse(Month < 3, Year - 1, Year),
+        Season = dplyr::case_when(
+          Month %in% 3:5 ~ "Spr",
+          Month %in% 6:8 ~ "Sum",
+          Month %in% 9:11 ~ "Fal",
+          Month %in% c(12, 1, 2) ~ "Win"
+        )
+      ) |>
+
+      dplyr::group_by(Season, Year) |>
+      dplyr::summarise(dplyr::across(c(NPGO, PDO), mean), .groups = "drop") |>
+      tidyr::pivot_longer(cols = c(NPGO, PDO)) |>
+      tidyr::pivot_wider(values_from = value, names_from = c(Season, name))
+
+
+    readr::write_csv(dat,ocean_cov_file)
+
+    return(dat)
+  }else{
+    return(local_dat)
+  }
+
+}
+
+
+cnts_for_mod_fun<-function(forecastdate,Bon_cnts){
+
+  forecast_yar<-lubridate::year(forecastdate)
+  forecast_month<-lubridate::month(forecastdate)
+  forecast_mday<-lubridate::mday(forecastdate)
+  forecast_season<-chk_season(forecastdate)
+  #
+  Bon_cnts |>
+    dplyr::filter(season ==forecast_season) |>
+    dplyr::arrange(.data$year,.data$month,.data$mday) |>
+    dplyr::group_by(.data$year) |>
+    dplyr::mutate(
+      cum_cnt=cumsum(.data$AdultChinook),
+      tot_adult=tail(.data$cum_cnt,1),
+      tot_jack=sum(.data$JackChinook)
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::filter(month==forecast_month,mday==forecast_mday) |>
+    dplyr::mutate(lag_jack=dplyr::lag(tot_jack,1)
+    ) |>
+    dplyr::select(year,cum_cnt,tot_adult,lag_jack) |>
+    dplyr::mutate(log_cum_cnt=log(cum_cnt),log_tot_adult=log(tot_adult),log_lag_jack=log(lag_jack))
 }
