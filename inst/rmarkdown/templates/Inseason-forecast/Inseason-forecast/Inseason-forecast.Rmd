@@ -17,7 +17,6 @@ forecast_md<-lubridate::mday(forecastdate)
 ```
 
 ```{r data}
-
 #fish data
 Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       count_file="fish_counts.csv",
@@ -42,23 +41,40 @@ flow_temp_dat<-get_flow_data(forecastdate = lubridate::today()-1,flow_file = "fl
   flow_ema_fun(start_month = 2)
 
 #fish data combined with river and ocean covariates for modeling
-fish_river_ocean<-dplyr::inner_join(flow_temp_dat |>
+fish_river_ocean<-cnts_for_mod_fun(counts_through,Bon_cnts) |> 
+  dplyr::left_join(flow_temp_dat |>
                                 dplyr::filter(month==forecast_month,
                                               md==forecast_md) |> 
-                                dplyr::select(year=Year,cfs_mean,temp_mean),
-                              cnts_for_mod_fun(counts_through,Bon_cnts)) |> 
+                                dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
+                              ) |> 
    dplyr::left_join(ocean_cov_fun(forecast_year) |> 
                       dplyr::mutate(Year=Year+2) |> dplyr::select(year=Year,lag2_Spr_NPGO = Spr_NPGO, lag2_Spr_PDO = Spr_PDO, lag2_Sum_NPGO = Sum_NPGO, lag2_Sum_PDO = Sum_PDO)
    )
+```
 
 
+```{r sibregresr}
+## data for sibregresr package
+sib_reg_dat<-fish_river_ocean |> dplyr::mutate(Stock="Bon_Spr") |> dplyr::select(Stock,ReturnYear=year,Age3=tot_jack ,Age4=tot_adult) |> 
+    dplyr::filter(ReturnYear<forecast_year)
 
 
+sib_reg_cov<-fish_river_ocean |> dplyr::select(ReturnYear=year,log_cum_cnt,cfs_mean_ema:lag2_Sum_PDO)
+# pen_dlm_forecast<-sibregresr::forecast_fun(
+#   df = sib_reg_dat,
+#   include = c("PenDlm"),
+#   transformation = log,
+#   inverse_transformation = exp,
+#   scale_x = TRUE,
+#   scale_y = TRUE,
+#   perf_yrs = 10,
+#   wt_yrs = 1,
+# )
 
-fish_river_ocean |> colnames()
+# sibregresr::make_table(pen_dlm_forecast$forecasts,"PenDlm")
 
-pen_dlm_forecast<-forecast_fun(
-  df = summer_chinook_2024,
+pen_dlm_forecast_cov<-sibregresr::forecast_fun(
+  df = sib_reg_dat,
   include = c("PenDlm"),
   transformation = log,
   inverse_transformation = exp,
@@ -66,21 +82,33 @@ pen_dlm_forecast<-forecast_fun(
   scale_y = TRUE,
   perf_yrs = 15,
   wt_yrs = 1,
+  covariates = sib_reg_cov,
+  penDLM_formula =formula("y~ x + log_cum_cnt + cfs_mean_ema + temp_mean_ema + lag2_Spr_NPGO + lag2_Spr_PDO") # + lag2_Sum_NPGO + lag2_Sum_PDO
 )
 
+sibregresr::make_table(pen_dlm_forecast_cov$forecasts,"PenDlm")
 
-pen_dlm_forecast_cov<-forecast_fun(
-  df = summer_chinook_2024,
-  include = c("PenDlm"),
-  transformation = log,
-  inverse_transformation = exp,
-  scale_x = TRUE,
-  scale_y = TRUE,
-  perf_yrs = 15,
-  wt_yrs = 1,
-  covariates = covariates_24,
-  penDLM_formula =formula("y~ x + lag2_PDO + lag2_NPGO")
-)
+```
+
+
+
+```{r salmonForecast}
+
+# abundance=TOTAL,year=Year,species,period
+
+salmonForecasting_dat<-fish_river_ocean |> dplyr::mutate(species="Bon_Spr",period=1) |> dplyr::select(species,period,year,abundance=tot_adult,log_lag_jack,log_cum_cnt,cfs_mean_ema:lag2_Sum_PDO)
+
+
+
+ARIMA_forecast<-SalmonForecasting::do_forecast(salmonForecasting_dat,
+                                               covariates =c("log_lag_jack","log_cum_cnt","cfs_mean_ema","temp_mean_ema","lag2_Spr_NPGO","lag2_Spr_PDO"),max_vars=3,n_cores=8,do_stacking = FALSE,TY_ensemble=15,write_model_summaries=FALSE)
+
+
+ARIMA_forecast$plots_and_tables$Table2
+ARIMA_forecast$plots_and_tables$Table3
+ARIMA_forecast$plots_and_tables$Table4
+ARIMA_forecast$plots_and_tables$Figure1
+ARIMA_forecast$plots_and_tables$Figure3
 
 
 

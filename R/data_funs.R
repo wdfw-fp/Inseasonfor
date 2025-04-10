@@ -371,10 +371,10 @@ ocean_cov_fun<-function(pred_year,ocean_cov_file="PDO_NPGO.csv"){
 
 cnts_for_mod_fun<-function(forecastdate,Bon_cnts){
 
-  forecast_yar<-lubridate::year(forecastdate)
+  forecast_year<-lubridate::year(forecastdate)
   forecast_month<-lubridate::month(forecastdate)
   forecast_mday<-lubridate::mday(forecastdate)
-  forecast_season<-chk_season(forecastdate)
+  # forecast_season<-chk_season(forecastdate)
   #
   Bon_cnts |>
     dplyr::filter(season ==forecast_season) |>
@@ -389,6 +389,7 @@ cnts_for_mod_fun<-function(forecastdate,Bon_cnts){
     dplyr::filter(month==forecast_month,mday==forecast_mday) |>
     dplyr::mutate(lag_jack=dplyr::lag(tot_jack,1)
     ) |>
-    dplyr::select(year,cum_cnt,tot_adult,lag_jack) |>
-    dplyr::mutate(log_cum_cnt=log(cum_cnt),log_tot_adult=log(tot_adult),log_lag_jack=log(lag_jack))
+    dplyr::select(year,cum_cnt,tot_adult,tot_jack,lag_jack) |>
+    dplyr::mutate(tot_adult=ifelse(year==forecast_year,NA,tot_adult),
+  log_cum_cnt=log(cum_cnt),log_tot_adult=log(tot_adult),log_lag_jack=log(lag_jack))
 }

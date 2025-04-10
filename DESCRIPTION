@@ -16,12 +16,9 @@ Imports:
     ggplot2,
     lubridate,
     purrr,
-    Rcpp,
     readr,
     rlang,
+    RTMB,
     testthat,
     tidyr,
-    TMB (>= 1.9.10),
     zoo
-LinkingTo: 
-    TMB
