@@ -221,7 +221,7 @@ get_flow_data<-function(forecastdate=NULL,flow_file="flow_temp_dat.csv"){
 
   if (file.exists(flow_file)) {
     local_data <-
-      readr::read_csv(flow_file) |> tidyr::drop_na()
+      readr::read_csv(flow_file)
 
     sdate <- max(local_data$flw_date)+1
     #
@@ -264,7 +264,7 @@ get_flow_data<-function(forecastdate=NULL,flow_file="flow_temp_dat.csv"){
     }
 
 
-    dat<-dplyr::bind_rows(local_data, all_dat |> dplyr::filter(flw_date >max(local_data$flw_date)) )
+    dat<-dplyr::bind_rows(local_data, all_dat |> dplyr::filter(flw_date >max(local_data$flw_date)) ) |> dplyr::filter(flw_date<lubridate::today())
     readr::write_csv(dat,flow_file)
     return(dat)
 

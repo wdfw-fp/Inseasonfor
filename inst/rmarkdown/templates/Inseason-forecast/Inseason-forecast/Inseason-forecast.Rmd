@@ -37,7 +37,7 @@ counts_through<- bon_yr_seas %>%  dplyr::pull(CountDate) %>% max()
 
 
 # flow temp data
-flow_temp_dat<-get_flow_data(forecastdate = lubridate::today()-1,flow_file = "flow_temp_dat.csv") |> 
+flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = "flow_temp_dat.csv") |> 
   flow_ema_fun(start_month = 2)
 
 #fish data combined with river and ocean covariates for modeling
@@ -114,6 +114,16 @@ ARIMA_forecast$plots_and_tables$Figure3
 
 ```
 
+```{r}
+joint_likelihood_fit<-fit_joint_likelihood(fish_river_ocean,forecast = 122500,forecast_log_sd = 0.3)
+
+joint_likelihood_fit$adrep_est$current_pred |> exp()
+
+paste(round(exp(c(joint_likelihood_fit$adrep_est$current_pred) + c(-1.96,1.96)*c(joint_likelihood_fit$adrep_sd$current_pred))),collapse="--")
+
+
+
+```
 
 ```{r plot_cnts_env}
 flow_temp_dat %>%
@@ -133,7 +143,9 @@ flow_temp_dat %>%
 ```
 
 ```{r}
+
 Bon_ch<-Bon_ch_fun(forecastdate,Bon_cnts)
+
 Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)
 Bon_ch_day<-Bon_ch_year |> dplyr::filter(CountDate==counts_through)
 

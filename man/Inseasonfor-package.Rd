@@ -2,7 +2,6 @@
 % Please edit documentation in R/Inseasonfor-package.R
 \docType{package}
 \name{Inseasonfor-package}
-\alias{Inseasonfor}
 \alias{Inseasonfor-package}
 \title{Inseasonfor: Forecasts Chinook returns to the Columbia River in season}
 \description{
