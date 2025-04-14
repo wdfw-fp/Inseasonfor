@@ -19,6 +19,11 @@ Imports:
     readr,
     rlang,
     RTMB,
+    SalmonForecasting (>= 0.1.0),
+    sibregresr (>= 0.0.0.9000),
     testthat,
     tidyr,
     zoo
+Remotes:  
+    wdfw-fp/sibregresr,
+    wdfw-fp/salmonforecast

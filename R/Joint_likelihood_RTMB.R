@@ -1,5 +1,57 @@
 
 
+#' joint_likelihood_results
+#'
+#' @param forecastdate
+#' @param dat
+#' @param forecast
+#' @param forecast_log_sd
+#' @param joint_like_data_file
+#'
+#' @return
+#' @export
+#'
+#' @examples
+joint_likelihood_results<-function(forecastdate,dat,forecast=122500,forecast_log_sd=0.28,
+    joint_like_data_file="Joint_like_res.csv"){
+
+
+  if (file.exists(joint_like_data_file)) {
+    local_data <-
+      readr::read_csv(joint_like_data_file)
+
+    sdate <- max(local_data$date)+1
+    #
+  } else {
+    local_data<-NULL
+    sdate<-  as.Date(paste0(lubridate::year(forecastdate),"-04-05"))
+  }
+
+
+  if(sdate<=forecastdate){
+    new_dat<-data.frame()
+for (i in seq.Date(from=sdate,to=forecastdate,by=1)){
+
+  dat_i <- dat |>
+
+  new_dat<-dplyr::bind_rows(new_dat,
+                            fit_joint_likelihood(fish_river_ocean,forecast = forecast,forecast_log_sd = forecast_log_sd)) |>
+    dplyr::mutate(date=i,month=lubridate::month(i),mday=lubridate::mday(i),.before="L95")
+
+}
+
+    dat<-dplyr::bind_rows(local_data,new_dat)
+    readr::write_csv(dat,joint_like_data_file)
+    return(dat)
+  }else{
+    return(local_data)
+  }
+
+}
+
+
+
+
 
 
 
@@ -79,10 +131,17 @@ fit_joint_likelihood<-function(dat,forecast,forecast_log_sd){
   adrep_est<-as.list(sdr, "Est", report=TRUE)
   adrep_sd<-as.list(sdr, "Std", report=TRUE)
 
-  list(adrep_est=adrep_est,
-       adrep_sd=adrep_sd)
-}
+  pred<-adrep_est$current_pred
+  pred_sd<-adrep_sd$current_pred
 
+
+  matrix(exp(qnorm(c(.025,.25,.5,.75,.975),pred,pred_sd)),nrow=1) |>
+    `colnames<-`(c("L95","L50","Pred","U50","U95")) |> data.frame(logit_p= adrep_est$logitp |> tail(1),
+                                                                  logit_p_sd= adrep_sd$logitp |> tail(1),
+                                                                  B1= adrep_est$B1 |> tail(1),
+                                                                  B1_sd= adrep_sd$B1 |> tail(1))
+
+}
 
 
 
@@ -129,7 +188,7 @@ Inseasonfor <- function(data_list) {
 
   RTMB::REPORT(p)
   RTMB::REPORT(current_pred)
-  RTMB::ADREPORT(p)
+  RTMB::ADREPORT(logitp)
   RTMB::ADREPORT(current_pred)
   RTMB::ADREPORT(B1)
 
