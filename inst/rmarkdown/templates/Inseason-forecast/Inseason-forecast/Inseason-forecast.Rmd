@@ -14,6 +14,9 @@ forecast_year<-lubridate::year(forecastdate)
 forecast_month<-lubridate::month(forecastdate)
 forecast_md<-lubridate::mday(forecastdate)
 
+#summer chinook forecast = 38,000, log_sd~ 0.33
+#spring chinook forecast = 122500, log_sd~ 0.3
+
 ```
 
 ```{r data}
@@ -23,10 +26,8 @@ Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum")
 
 
-
-
-
 bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
+
 
 if(nrow(bon_yr_seas)==0){
   errorCondition("There are no counts for the season of interest")
@@ -35,167 +36,50 @@ if(nrow(bon_yr_seas)==0){
 #max date
 counts_through<- bon_yr_seas %>%  dplyr::pull(CountDate) %>% max()
 
+if(counts_through<forecastdate){
+  forecastdate<-counts_through
+  warning("counts are not available through the provided forecast date. Returning results based on the most updated counts available.")
+}
 
 # flow temp data
 flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = "flow_temp_dat.csv") |> 
   flow_ema_fun(start_month = 2)
 
 
+#ocean cov data
+ocean_cov<-ocean_cov_fun(forecast_year) |> 
+  dplyr::mutate(Year=Year+2) |> dplyr::select(year=Year,lag2_Spr_NPGO = Spr_NPGO, lag2_Spr_PDO = Spr_PDO, lag2_Sum_NPGO = Sum_NPGO, lag2_Sum_PDO = Sum_PDO)
 
 
 
-
-
-
-
-
-#fish data combined with river and ocean covariates for modeling
-fish_river_ocean<-cnts_for_mod_fun(counts_through,Bon_cnts) |> 
-  dplyr::left_join(flow_temp_dat |>
-                     dplyr::filter(month==forecast_month,
-                                   md==forecast_md) |> 
-                     dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
-  ) |> 
-  dplyr::left_join(ocean_cov_fun(forecast_year) |> 
-                     dplyr::mutate(Year=Year+2) |> dplyr::select(year=Year,lag2_Spr_NPGO = Spr_NPGO, lag2_Spr_PDO = Spr_PDO, lag2_Sum_NPGO = Sum_NPGO, lag2_Sum_PDO = Sum_PDO)
-  )
+# #fish data combined with river and ocean covariates for modeling
+# fish_river_ocean<-cnts_for_mod_fun(counts_through,Bon_cnts) |>
+#   dplyr::left_join(flow_temp_dat |>
+#                      dplyr::filter(month==forecast_month,
+#                                    md==forecast_md) |>
+#                      dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
+#   ) |>
+#   dplyr::left_join(
+#     ocean_cov
+#   )|>
+#         dplyr::mutate(
+#           cnt_by_flow= cfs_mean_ema*log_cum_cnt,
+#           cnt_by_temp= temp_mean_ema *log_cum_cnt,
+#         )
+# 
+# 
+# old_sib_R<-do_sibregresr_fun(fish_river_ocean,cov_vec=c("log_cum_cnt","cfs_mean_ema","cnt_by_temp"))
+# 
+# 
+# new_sib_R<-do_sibregresr_fun(fish_river_ocean,cov_vec=c("log_cum_cnt","cfs_mean_ema","cnt_by_temp"))
+# 
+# 
+# new_arima<-do_salmonForecasting_fun(data=fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
+# 
+# old_arima<-do_salmonForecasting_fun(data=fish_river_ocean,cov_vec=c("log_cum_cnt","cfs_mean_ema"=))
 ```
 
 
-```{r sibregresr}
-
-
-#' make forecast using sibregresr
-#'
-#' @param fish_river_ocean data 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-do_sibregresr_fun<-function(data,cov_vec=c("log_cum_cnt","cfs_mean_ema","temp_mean_ema","lag2_Spr_NPGO","lag2_Spr_PDO")){
-
-## data for sibregresr package
-sib_reg_dat<-data |> dplyr::mutate(Stock=paste("Bon",forecast_season,"Chk",sep="_")) |> dplyr::select(Stock,ReturnYear=year,Age3=tot_jack ,Age4=tot_adult) |> 
-  dplyr::filter(ReturnYear<forecast_year)
-
-
-sib_reg_cov<-fish_river_ocean |> dplyr::select(ReturnYear=year,all_of(cov_vec))
-
-
-
-pen_dlm_forecast_cov<-sibregresr::forecast_fun(
-  df = sib_reg_dat,
-  include = c("PenDlm"),
-  transformation = log,
-  inverse_transformation = exp,
-  scale_x = TRUE,
-  scale_y = TRUE,
-  perf_yrs = 15,
-  wt_yrs = 1,
-  covariates = sib_reg_cov,
-  penDLM_formula =formula(paste(c("y ~ x" , cov_vec),collapse=" + "))
-)
-
-sibregresr::make_table(pen_dlm_forecast_cov$forecasts,"PenDlm")
-
-
-forecast<-pen_dlm_forecast_cov$forecasts |> dplyr::filter(Age=="4",ReturnYear==forecast_year,model_name=="PenDlm")
-
-log_pred<-log(forecast$Pred)
-log_sd<-forecast$log_sd
-
-
-  matrix(exp(qnorm(c(.025,.25,.5,.75,.975),log_pred,log_sd)),nrow=1) |>
-    `colnames<-`(c("L95","L50","Pred","U50","U95")) 
-  
-  
-
-
-info<-pen_dlm_forecast_cov$fits |> dplyr::filter(Age==4,n_years==-1)
-
-
-
-coefs<-c(unlist(tail(info$MLE[[1]]$result$obj$report()$coefs,1))) |> `names<-`(c("Int","Lag_log_jack",cov_vec[]))
-
-
-covs<-c(1,unlist(tail(info$xy_dat[[1]],1)[,c("x",cov_vec)]))|> `names<-`(c("Int","Lag_log_jack",cov_vec[]))
-
-mean_effects<-coefs*covs 
-
-mean_effects |> data.frame() |> t()
-}
-
-```
-
-
-
-```{r salmonForecast}
-
-# abundance=TOTAL,year=Year,species,period
-
-salmonForecasting_dat<-fish_river_ocean |> dplyr::mutate(species="Bon_Spr",period=1) |> dplyr::select(species,period,year,abundance=tot_adult,log_lag_jack,log_cum_cnt,cfs_mean_ema:lag2_Sum_PDO) |>
-  tidyr::fill(c("log_lag_jack",cov_vec[-1]))
-dplyr::mutate(
-  dplyr::across(c("log_lag_jack",cov_vec[-1]),\(x)c(scale(x)))
-)
-
-
-ARIMA_forecast<-SalmonForecasting::do_forecast(salmonForecasting_dat,
-                                               covariates =c("log_lag_jack",cov_vec[-1]),max_vars=3,n_cores=8,do_stacking = FALSE,TY_ensemble=15,write_model_summaries=FALSE,include_mod = TRUE)
-
-
-best_weighting<-ARIMA_forecast$ens$forecast_skill |> dplyr::filter(grepl("w",model)) |> dplyr::filter(MAPE==min(MAPE)) |> dplyr::pull(model) 
-
-#best pred
-pred<-ARIMA_forecast$ens$ensembles |>  dplyr::filter(year==forecast_year,
-                                               model== best_weighting) |> 
-  dplyr::mutate(month=forecast_month,md=forecast_md,date=forecastdate)
-
-
-#average coefficients
-coef_mat<-ARIMA_forecast$rp$top_mods |> 
-  dplyr::mutate(dplyr::across(-mod,unlist)) |> 
-  dplyr::filter(year==forecast_year) |> 
-  dplyr::pull(mod) |> 
-  lapply(\(x)x[[1]]) |> 
-  dplyr::bind_rows()
-
-model_weights<-ARIMA_forecast$ens$final_model_weights |> dplyr::pull(substr(best_weighting,1,(nchar(best_weighting)-2)))
-
-
-ave_coefs<-colSums(coef_mat *
-                     model_weights ,na.rm=T)
-
-ave_coefs_non_int_or_ARMA<-ave_coefs[!names(ave_coefs)%in%c("intercept",paste0("ar",1:10),paste0("ma",1:10),paste0("sar",1:10),paste0("sma",1:10))]
-
-
-covars<-salmonForecasting_dat[salmonForecasting_dat$year==forecast_year,c("log_lag_jack",cov_vec[-1])]
-
-
-covar_effects<-ave_coefs_non_int_or_ARMA*covars[names(ave_coefs_non_int_or_ARMA)]
-
-
-ARIMA_forecast$plots_and_tables$Table2
-ARIMA_forecast$plots_and_tables$Table3
-ARIMA_forecast$plots_and_tables$Table4
-ARIMA_forecast$plots_and_tables$Figure1
-ARIMA_forecast$plots_and_tables$Figure3
-
-
-
-```
-
-```{r}
-joint_likelihood_fit<-fit_joint_likelihood(fish_river_ocean,forecast = 122500,forecast_log_sd = 0.3)
-
-joint_likelihood_fit$adrep_est$current_pred |> exp()
-
-paste(round(exp(c(joint_likelihood_fit$adrep_est$current_pred) + c(-1.96,1.96)*c(joint_likelihood_fit$adrep_sd$current_pred))),collapse="--")
-
-
-
-```
 
 ```{r plot_cnts_env}
 flow_temp_dat %>%
@@ -214,35 +98,82 @@ flow_temp_dat %>%
   ggplot2::theme(legend.key=ggplot2::element_blank())
 ```
 
-```{r}
+```{r  number_crunching}
 
 Bon_ch<-Bon_ch_fun(forecastdate,Bon_cnts)
 
 Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)
-Bon_ch_day<-Bon_ch_year |> dplyr::filter(CountDate==counts_through)
+Bon_ch_day<-Bon_ch_year |> dplyr::filter(CountDate==forecastdate)
 
 highlight_row <- which(Bon_ch_year$CountDate == forecastdate)
 
 ```
 
-The cumulative adult Chinook passage through `r counts_through %>% format("%B %d, %Y")` is `r Bon_ch_day$total` fish.
+The cumulative adult Chinook passage through `r forecastdate %>% format("%B %d, %Y")` is `r Bon_ch_day$total` fish.
 
-The 5-year (`r paste0((forecast_year-5),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r counts_through %>% format("%B %d")` is `r round((Bon_ch_day$Ave_5yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_5yr),scientific=FALSE, big.mark=",")` fish.
-
-
-The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r counts_through %>% format("%B %d")` is `r round((Bon_ch_day$Ave_10yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` fish.
+<!-- The 5-year (`r paste0((forecast_year-5),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r counts_through %>% format("%B %d")` is `r round((Bon_ch_day$Ave_5yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_5yr),scientific=FALSE, big.mark=",")` fish. -->
 
 
-```{r}
-Bon_ch_year |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr*100),x=CountDate))+ggplot2::geom_col()+ggplot2::geom_vline(ggplot2::aes(xintercept = counts_through),col="darkred",lty=2,lwd=1.1)+ggplot2::ylab("Mean absolute percent error (MAPE)")+ggplot2::theme(axis.title.x.bottom = ggplot2::element_blank())
+The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r forecastdate %>% format("%B %d")` is `r round((Bon_ch_day$Ave_10yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` fish.
 
 
-Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |> dplyr::mutate(date=(as.Date(paste(forecast_year,month,mday,sep="-")))) |> ggplot2::ggplot(ggplot2::aes(x=date,y=prop*100))+ggplot2::geom_boxplot(ggplot2::aes(group = date))+ ggplot2::scale_x_date(
-  date_breaks = "1 month",
-  date_labels = "%b"
-)+ggplot2::geom_vline(ggplot2::aes(xintercept = counts_through),col="darkred",lty=2,lwd=1.1)+ggplot2::ylab("Percent complete")
+```{r timing_plot, fig.cap= "Percent of the run complete by date, 1995--2024."}
+Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |> dplyr::mutate(date=(as.Date(paste(forecast_year,month,mday,sep="-")))) |>
+  dplyr::filter(month>=4) |> 
+  ggplot2::ggplot(ggplot2::aes(x=date,y=prop*100))+ggplot2::geom_boxplot(ggplot2::aes(group = date))+ ggplot2::scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%b"
+  )+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="darkred",lty=2,lwd=1.1)+ggplot2::ylab("Percent complete")+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
 
 ```
+
+
+```{r MAPE_10_year, fig.cap= "Mean absolute percent error of predictions based on 10-year average run timing, by day of year."}
+Bon_ch_year |>
+  dplyr::filter(month>=4) |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr*100),x=CountDate))+ggplot2::geom_col()+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="darkred",lty=2,lwd=1.1)+ggplot2::ylab("Mean absolute percent error (MAPE)")+ggplot2::theme(axis.title.x.bottom = ggplot2::element_blank()) #+ ggplot2::geom_hline(ggplot2::aes(yintercept=30),lty=2)
+
+```
+
+
+```{r modeling}
+
+
+model_results<-mod_results(forecastdate = forecastdate,
+                           Count_dat = Bon_cnts,
+                           River_dat = flow_temp_dat,
+                           Ocean_dat = ocean_cov,
+                           forecast = ifelse(forecast_season=="spring",122500,38000),
+                           forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.33))
+
+
+
+# add 10 year timing to model resutls
+model_results2<-model_results |> 
+  dplyr::bind_rows(
+    Bon_ch_year |> 
+      dplyr::ungroup()|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,"-04-05")),
+                                               forecastdate)) |>
+      dplyr::mutate(`Lo 95`=exp(qnorm(.025,log(pred_Ave_10yr),log_sd_10yr)),
+                    `Lo 50`=exp(qnorm(.25,log(pred_Ave_10yr),log_sd_10yr)),
+                    `Hi 50`=exp(qnorm(.75,log(pred_Ave_10yr),log_sd_10yr)),
+                    `Hi 95`=exp(qnorm(.975,log(pred_Ave_10yr),log_sd_10yr)),
+                    mod_type="10-year\nave. timing") |>
+      dplyr::select(mod_type,predicted_abundance=pred_Ave_10yr,`Lo 95`:`Hi 95`,MAPE=MAPE_10yr,date=CountDate)
+  )
+
+
+
+
+model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+ggplot2::geom_line()+ggplot2::geom_point()+ggplot2::ylab("Predicted total dam count")+ggplot2::theme(axis.title.x = ggplot2::element_blank())+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="k",scale = 1e-3))
+
+
+model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+ggplot2::geom_line()+ggplot2::geom_point()+ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 95`,ymax=`Hi 95`),alpha=.5,color=NA)+ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 50`,ymax=`Hi 50`),alpha=.5,color=NA)+ggplot2::facet_wrap(~mod_type)
+```
+
+
+
+
+
 
 
 

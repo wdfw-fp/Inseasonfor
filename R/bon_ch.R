@@ -80,16 +80,24 @@ Bon_ch_fun<-function(pred_date=NULL,
   dat3 |> dplyr::mutate(dplyr::across(Ave_5yr:dplyr::last_col(),\(x){.data$total/x}, .names = "pred_{.col}")) |>
     dplyr::group_by(year) |>
     dplyr::mutate(obs_tot=tail(.data$total,1),
-                  APE_5=abs(obs_tot-pred_Ave_5yr)/obs_tot,
-                  APE_10=abs(obs_tot-pred_Ave_10yr)/obs_tot
-                  ) |>
+                  er_5= obs_tot-pred_Ave_5yr,
+                  er_10 =obs_tot-pred_Ave_10yr,
+                  log_er_5= log(obs_tot/pred_Ave_5yr),
+                  log_er_10 =log(obs_tot/pred_Ave_10yr),
+                  APE_5=abs(er_5)/obs_tot,
+                  APE_10=abs(er_10)/obs_tot
+    ) |>
 
     dplyr::arrange(.data$year,.data$month,.data$mday) |>
     dplyr::group_by(month ,mday) |>
     dplyr::mutate(MAPE_5yr=dplyr::lag(zoo::rollmean(.data$APE_5,k=15,align="right",fill=NA_real_),1),
-                  MAPE_10yr=dplyr::lag(zoo::rollmean(.data$APE_10,k=15,align="right",fill=NA_real_),1))
+                  MAPE_10yr=dplyr::lag(zoo::rollmean(.data$APE_10,k=15,align="right",fill=NA_real_),1),
+                  log_sd_5yr=dplyr::lag(zoo::rollapply(.data$log_er_5,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
+                  ,
+                  log_sd_10yr=dplyr::lag(zoo::rollapply(.data$log_er_10,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1))
 
 
 }
+
 
 

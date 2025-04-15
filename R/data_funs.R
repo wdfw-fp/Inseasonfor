@@ -374,7 +374,7 @@ cnts_for_mod_fun<-function(forecastdate,Bon_cnts){
   forecast_year<-lubridate::year(forecastdate)
   forecast_month<-lubridate::month(forecastdate)
   forecast_mday<-lubridate::mday(forecastdate)
-  # forecast_season<-chk_season(forecastdate)
+  forecast_season<-chk_season(forecastdate)
   #
   Bon_cnts |>
     dplyr::filter(season ==forecast_season) |>
