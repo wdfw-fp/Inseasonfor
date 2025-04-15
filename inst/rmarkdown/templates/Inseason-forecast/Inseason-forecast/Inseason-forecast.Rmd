@@ -7,6 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(Inseasonfor)
+
 
 forecastdate <- lubridate::today()-1
 forecast_season<-chk_season(forecastdate)
@@ -34,7 +36,7 @@ if(nrow(bon_yr_seas)==0){
 }
 
 #max date
-counts_through<- bon_yr_seas %>%  dplyr::pull(CountDate) %>% max()
+counts_through<- bon_yr_seas |>  dplyr::pull(CountDate) |>  max()
 
 if(counts_through<forecastdate){
   forecastdate<-counts_through
@@ -42,8 +44,7 @@ if(counts_through<forecastdate){
 }
 
 # flow temp data
-flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = "flow_temp_dat.csv") |> 
-  flow_ema_fun(start_month = 2)
+flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = "flow_temp_dat.csv") 
 
 
 #ocean cov data
@@ -82,14 +83,14 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 
 
 ```{r plot_cnts_env}
-flow_temp_dat %>%
+flow_temp_dat  |> 
   dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_mean , `River temp. (F)`=temp_mean) |> 
   dplyr::mutate(Date=as.Date(Date)) |> 
   dplyr::inner_join(
     bon_yr_seas |> 
       dplyr::select(Date=CountDate,`Adult count`=AdultChinook)
   ) |> 
-  tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value") %>%
+  tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value")  |> 
   ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=Param,shape=Param))+ ggplot2::geom_point(size=2.5,show.legend=FALSE)+ggplot2::geom_line(show.legend=FALSE)+ggplot2::facet_wrap(~Param,ncol=1,scales="free_y")+
   ggplot2::scale_color_manual(values=c("orangered4","navy","olivedrab"))+
   ggplot2::labs(y="",
@@ -109,12 +110,12 @@ highlight_row <- which(Bon_ch_year$CountDate == forecastdate)
 
 ```
 
-The cumulative adult Chinook passage through `r forecastdate %>% format("%B %d, %Y")` is `r Bon_ch_day$total` fish.
+The cumulative adult Chinook passage through `r forecastdate  |>  format("%B %d, %Y")` is `r Bon_ch_day$total` fish.
 
-<!-- The 5-year (`r paste0((forecast_year-5),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r counts_through %>% format("%B %d")` is `r round((Bon_ch_day$Ave_5yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_5yr),scientific=FALSE, big.mark=",")` fish. -->
+<!-- The 5-year (`r paste0((forecast_year-5),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r counts_through |>  format("%B %d")` is `r round((Bon_ch_day$Ave_5yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_5yr),scientific=FALSE, big.mark=",")` fish. -->
 
 
-The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r forecastdate %>% format("%B %d")` is `r round((Bon_ch_day$Ave_10yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` fish.
+The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r forecastdate  |>  format("%B %d")` is `r round((Bon_ch_day$Ave_10yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` fish.
 
 
 ```{r timing_plot, fig.cap= "Percent of the run complete by date, 1995--2024."}

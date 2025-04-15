@@ -18,12 +18,17 @@ mod_results<-function(forecastdate,
                       Ocean_dat = ocean_cov,
                       forecast=122500,
                       forecast_log_sd=0.28,
-                      joint_like_data_file="forecast_results.csv"){
+                      mod_result_file="forecast_results.csv"){
 
 
-  if (file.exists(joint_like_data_file)) {
+  if (is.null(mod_result_file)) {
+    mod_result_file <- get_default_model_result_path()
+  }
+
+
+  if (file.exists(mod_result_file)) {
     local_data <-
-      readr::read_csv(joint_like_data_file)
+      readr::read_csv(mod_result_file)
 
     sdate <- max(local_data$date)+1
     #
@@ -85,7 +90,7 @@ mod_results<-function(forecastdate,
   }
 
     dat<-dplyr::bind_rows(local_data,new_dat)
-    readr::write_csv(dat,joint_like_data_file)
+    readr::write_csv(dat,mod_result_file)
     return(dat)
 }else{
   return(local_data)
