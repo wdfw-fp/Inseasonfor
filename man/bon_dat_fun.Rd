@@ -6,7 +6,7 @@
 \usage{
 bon_dat_fun(
   pred_date = NULL,
-  count_file = "fish_counts.csv",
+  count_file = NULL,
   url = "https://www.fpc.org/adults/R_coeadultcount_runsum"
 )
 }

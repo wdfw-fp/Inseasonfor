@@ -41,11 +41,17 @@ chk_season<-function(day){
 #' bon_dat_fun()
 #'
 bon_dat_fun<-function(pred_date=NULL,
-                      count_file="fish_counts.csv",
+                      count_file=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum"){
 
 
 
+  # Use default location if not provided
+  if (is.null(count_file)) {
+    count_file <- get_default_count_path()
+  }
+
+  fs::dir_create(dirname(count_file))
 
   #fetch data
 
@@ -56,6 +62,7 @@ bon_dat_fun<-function(pred_date=NULL,
     sdate <- max(local_data$CountDate  )+1
     #
   } else {
+    message("Local file not found at: ", count_file)
     local_data<-NULL
     sdate<-"1980-01-01"
   }
@@ -213,10 +220,21 @@ get_usace_flow_temp_data <- function(forecastdate,startdate,dam="BON") {
 }
 
 #----------------------------------------------------------
+#' get_flow_data
+#'
+#' @param forecastdate
+#' @param flow_file
+#'
+#' @return
+#' @export
+#'
+#' @examples
+get_flow_data<-function(forecastdate=NULL,flow_file=NULL){
 
-
-get_flow_data<-function(forecastdate=NULL,flow_file="flow_temp_dat.csv"){
-
+  # Use default location if not provided
+  if (is.null(flow_file)) {
+    flow_file <- get_default_flow_path()
+  }
 
 
   if (file.exists(flow_file)) {
@@ -226,6 +244,7 @@ get_flow_data<-function(forecastdate=NULL,flow_file="flow_temp_dat.csv"){
     sdate <- max(local_data$flw_date)+1
     #
   } else {
+    message("Local file not found at: ", flow_file)
     local_data<-NULL
     sdate<-"1980-01-01"
   }
@@ -266,16 +285,24 @@ get_flow_data<-function(forecastdate=NULL,flow_file="flow_temp_dat.csv"){
 
     dat<-dplyr::bind_rows(local_data, all_dat |> dplyr::filter(flw_date >max(local_data$flw_date)) ) |> dplyr::filter(flw_date<lubridate::today())
     readr::write_csv(dat,flow_file)
-    return(dat)
+    return(dat|> flow_ema_fun())
 
   }
   else{
-    return(local_data)
+    return(local_data |> flow_ema_fun())
   }
 }
 
 
 
+#' flow_ema_fun
+#'
+#' @param dat
+#' @param start_month
+#'
+#' @return
+#'
+#' @examples
 flow_ema_fun<-function(dat,start_month=2){
   dat %>%
     dplyr::mutate(Year=lubridate::year(flw_date),
@@ -316,10 +343,15 @@ get_flow_day<-function(dat,day){
 #' @examples
 ocean_cov_fun<-function(pred_year,ocean_cov_file="PDO_NPGO.csv"){
 
+  # Use default location if not provided
+  if (is.null(ocean_cov_file)) {
+    ocean_cov_file <- get_default_ocean_path()
+  }
 
   if(file.exists(ocean_cov_file)){
     local_dat<-readr::read_csv(ocean_cov_file)
   }else{
+    message("Local file not found at: ", ocean_cov_file)
     local_dat<-data.frame(Year=-1)
   }
 
