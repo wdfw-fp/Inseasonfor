@@ -15,6 +15,7 @@ Imports:
     dplyr,
     fs,
     ggplot2,
+    gt,
     lubridate,
     magrittr,
     purrr,

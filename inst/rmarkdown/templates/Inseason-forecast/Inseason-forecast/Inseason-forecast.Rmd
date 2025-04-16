@@ -238,6 +238,44 @@ model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,colo
 ```
 
 
+### Covariate effects
+
+```{r covar_effects}
+
+model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%c("ARIMA","DLM")) |> dplyr::select(Model=mod_type,coef_intercept, coef_log_lag_jack:coef_cnt_by_flow,covar_log_lag_jack:covar_cnt_by_flow,effect_log_lag_jack:effect_cnt_by_flow) |>   
+  gt::gt() |>
+  gt::tab_spanner_delim(delim = "_",limit=1,split="first") |>  
+  gt::fmt_number(
+    columns = dplyr::where(is.numeric),
+    decimals = 2
+  ) |> gt::tab_footnote(footnote="The response and the covariates are z-scored before fitting the DLM, but the response is not standardized for the ARIMA model",locations=gt::cells_column_labels(columns = Model)) |>  gt::tab_options(table.width = "100%") |>  gt::cols_label_with(fn=function(x) gsub("_", " ", x)) |>
+  gt::tab_caption("Fitted coefficients, covariate values, and effects (coefficient * covariate) for the DLM and ARIMA models. Covariates are the log of the jack returns in the previous years, the log of the cumulative adult counts to date, and an interaction between the cumulative counts and a moving average of river discharge.")
+  
+
+```
+
+```{r flow_effect_log_like}
+
+model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%c("Joint_Lik")) |> dplyr::select(`Coefficient`=coef_cfs_mean_ema) |>   
+  dplyr::mutate(
+    `Covariate` =(flow_temp_dat |>
+    dplyr::filter(month==forecast_month,
+                  md==forecast_md) |> tidyr::fill(cfs_mean_ema) |> dplyr::pull(cfs_mean_ema) |> log() |> scale() |> c() |> tail(1)),
+    Effect=`Covariate`*`Coefficient`
+    
+    
+  ) |> 
+  gt::gt() |>
+  gt::fmt_number(
+    columns = dplyr::where(is.numeric),
+    decimals = 2
+  )  |>
+  gt::tab_caption("Fitted coefficient, covariate value, and effect (coefficient * covariate) for the log transformed and z-scaled moving average of river discharge in the linear predictor of the proportion of the run that is complete within the joint-likelihood model.") |> gt::tab_options(table.width = "100%")
+  
+
+```
+
+
 ### Methods description
 
 
