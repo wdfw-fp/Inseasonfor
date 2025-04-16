@@ -105,9 +105,9 @@ The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average pro
 
 ### Current year
 
-```{r plot_cnts_env}
+```{r plot_cnts_env, fig.cap="Daily adult chinook salmon counts, flow, and temeprature measurements taken at Bonneville Dam."}
 flow_temp_dat  |> 
-  dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_mean , `River temp. (F)`=temp_mean) |> 
+  dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_USACoE , `River temp. (F)`=temp_f_ASACE) |> 
   dplyr::mutate(Date=as.Date(Date),`Flow (kcfs)`=`Flow (kcfs)`/1000) |> 
   dplyr::inner_join(
     bon_yr_seas |> 
@@ -141,7 +141,7 @@ Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |
 
 ### Prediction error
 
-```{r MAPE_10_year, fig.cap= "Mean absolute percent error  (over 15 year reetrospectiv) of predictions based on cumulative counts and 10-year average run timing, by day of year."}
+```{r MAPE_10_year, fig.cap= "Mean absolute percent error  (over 15 year retrospectiv) of predictions based on cumulative counts and 10-year average run timing, by day of year."}
 Bon_ch_year |>
   dplyr::filter(month>=4) |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr),x=CountDate))+ggplot2::geom_col(fill="white")+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1)+ggplot2::ylab("Mean absolute percent error (MAPE)") + ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))#+ ggplot2::geom_hline(ggplot2::aes(yintercept=30),lty=2)
 
@@ -151,7 +151,7 @@ Bon_ch_year |>
 
 ## Model predictions {.tabset}
 
-```{r modeling}
+```{r modeling,include=FALSE}
 model_results<-mod_results(forecastdate = forecastdate,
                            Count_dat = Bon_cnts,
                            River_dat = flow_temp_dat,
@@ -228,7 +228,7 @@ model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,colo
 ### Prediction interval plot
 
 
-```{r plot_pred_separate,fig.cap="Daily predictions and prediction intervals (95% and 50%). Where pridiction intervals are >250% of <40% of the prediction, the interval is not shown." }
+```{r plot_pred_separate,fig.cap="Daily predictions and prediction intervals (95% and 50%).  Pridiction intervals that are >250% or <40% of the prediction are not shown." }
 
 model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 95`,ymax=`Hi 95`),alpha=.5,color=NA)+ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 50`,ymax=`Hi 50`),alpha=.5,color=NA)+ggplot2::geom_line()+ggplot2::geom_point(size=2.5)+ggplot2::facet_wrap(~mod_type)+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="k",scale = 1e-3))+ ggplot2::scale_x_date(
     date_breaks = "5 days",
@@ -240,7 +240,28 @@ model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,colo
 
 ### Methods description
 
-#### Coming soon...
+
+##### DLM
+
+This is a penalized dynamic linear model fit with the [`Sibregresr` package](https://wdfw-fp.github.io/sibregresr/articles/Overview.html). The coefficients are the:
+
+1) log-transformed total count of jacks at Bonneville Dam in the *previous* year, 
+2) log-transformed cumulative adult count at Bonneville Dam in the *current* year,
+3) and interaction between an exponential moving average of river discharge and the cumulative adult count.
+
+The prediction interval is based on the standard deviation (in lo-space) of forecasts from a 15-year retrospective. In other words, the root mean square error of the forecast error in log space from a 15-year retrospective is used as the standard deviation in a lognormal prediction interval.
+
+#### ARIMA
+
+This is an ensemble of ARIMA models  fit with the [`SalmonForecasting` package](https://github.com/wdfw-fp/salmonforecast) (see README at the linked page for details). The covariates are the same as those described above for the DLM, and the prediction intervals are calculated in the same manner as well.
+
+#### Joint likelihood
+
+This is a version of a model that has been used for this purpose of in-season forecasting for several years. The proportion of the run that is complete on a given day is modeled with autoregressive (order 1) errors and an effect of the river discharge covariate. In this iteration, the pre-season forecast is fed in as a log-normal prior. The prediction interval is generated using the delta method. I have not yet implemented a retrospective assesment of performance because, in this version, the pre-season forecasts and prediction uncertainty need to be provided, and I have not pulled in the past 15 years' foreacts.
+
+#### 10 year average run timing
+
+This method takes the 10-year average of the proporiton of the run that was complete on a given day and uses it to expand the cumulative counts to date. Performance and prediction intervals are based on a `5-year retrospective as described above for the DLM. 
 
 
 ## Average timing info {.tabset}
@@ -277,7 +298,7 @@ htmltools::browsable(
 prop10yr_tab<-Bon_ch_year |> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,"-04-01")),
                                                forecastdate))|> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountDate,"%d-%b")) |> 
   
-  dplyr::select(Date,Ave_10yr_10_days_early:Ave_10yr_1_days_early,Ave_10yr,Ave_10yr_1_days_late:Ave_5yr_10_days_late) |> 
+  dplyr::select(Date,Ave_10yr_10_days_early:Ave_10yr_1_days_early,Ave_10yr,Ave_10yr_1_days_late:Ave_10yr_10_days_late) |> 
   `colnames<-`(c("Date",paste(10:1,"Days Early"),"10yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)round(x,2))) |>  knitr::kable(format = "html") |>
   kableExtra::kable_styling(full_width = TRUE) |>
@@ -339,7 +360,7 @@ htmltools::browsable(
 ```
 
 
-
+\linebreak
 
 
 

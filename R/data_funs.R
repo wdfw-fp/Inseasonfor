@@ -268,17 +268,17 @@ get_flow_data<-function(forecastdate=NULL,flow_file=NULL){
     USACoE_dat<-get_usace_flow_temp_data(edate,startdate=as.Date(sdate),dam="BON") %>%
       dplyr::mutate(flw_date=  as.Date(Date)) %>% #make date column names match
       dplyr::mutate(cfs_USACoE=(round(`Flow (kcfs)`,0)*1000),
-                    temp_f_ASACE=`River temp. (F)`) %>% #convert from kcfs to cfs and round to nearest throusandto match usgs data
-      dplyr::select(flw_date,cfs_USACoE,temp_f_ASACE)#select columns of interest
+                    temp_f_USACE=`River temp. (F)`) %>% #convert from kcfs to cfs and round to nearest throusandto match usgs data
+      dplyr::select(flw_date,cfs_USACoE,temp_f_USACE)#select columns of interest
 
     #merge them where there is a column for each sources
     if(is.null(dim(CBR_DAT_Dat))) {
       all_dat<-USACoE_dat %>%
-        dplyr::mutate(cfs_mean=cfs_USACoE,temp_mean=temp_f_ASACE)
+        dplyr::mutate(cfs_mean=cfs_USACoE,temp_mean=temp_f_USACE)
     }else{
       all_dat<-USACoE_dat %>% dplyr::full_join(CBR_DAT_Dat,by="flw_date") %>%
         dplyr::mutate(cfs_mean=dplyr::select(.,c(cfs_USACoE,cfs_CBR)) %>% rowMeans(na.rm=T),
-                      temp_mean=dplyr::select(.,c(temp_f_ASACE,temp_f_CBR)) %>% rowMeans(na.rm=T)
+                      temp_mean=dplyr::select(.,c(temp_f_USACE,temp_f_CBR)) %>% rowMeans(na.rm=T)
         )
     }
 
@@ -312,8 +312,8 @@ flow_ema_fun<-function(dat,start_month=2){
     dplyr::group_by(Year) %>% dplyr::arrange(flw_date) %>%
 
     # calculate exponential moving avg of flow using ema fn above
-    dplyr::mutate(cfs_mean_ema=ema(cfs_mean, ratio=0.1),
-                  temp_mean_ema=ema(temp_mean, ratio=0.1)) %>%
+    dplyr::mutate(cfs_USACoE=ema(cfs_mean, ratio=0.1),
+                  temp_f_USACE=ema(temp_mean, ratio=0.1)) %>%
     dplyr::ungroup()%>% dplyr::mutate(
       month=lubridate::month(flw_date),
       monthday=lubridate::mday(flw_date),

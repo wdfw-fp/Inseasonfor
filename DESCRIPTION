@@ -20,6 +20,7 @@ Imports:
     purrr,
     readr,
     rlang,
+    rmarkdown,
     RTMB,
     SalmonForecasting (>= 0.1.0),
     sibregresr (>= 0.0.0.9000),
