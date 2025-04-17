@@ -54,6 +54,7 @@ render_page_fun<-function(
 #'
 #' Automatically switches to `gh-pages` branch, copies the HTML report from the
 #' `site/` folder to the root directory, commits the update, and pushes to GitHub.
+#' It returns to your original Git branch afterward.
 #'
 #' @param site_dir Directory containing the rendered `index.html` (default: `"site"`).
 #' @param commit_message A message to use for the Git commit.
@@ -70,27 +71,34 @@ deploy_site <- function(site_dir = "site", commit_message = "Update GitHub Pages
     stop("Rendered file not found at: ", rendered_path)
   }
 
-  # Check current branch
-  current_branch <- system("git branch --show-current", intern = TRUE)
+  # Save current branch
+  original_branch <- system("git branch --show-current", intern = TRUE)
 
-  if (current_branch != "gh-pages") {
-    message("Switching from branch '", current_branch, "' to 'gh-pages'...")
+  # Switch to gh-pages if needed
+  if (original_branch != "gh-pages") {
+    message("Switching from '", original_branch, "' to 'gh-pages'...")
     switch_status <- system("git checkout gh-pages")
     if (switch_status != 0) {
-      stop("❌ Failed to switch to 'gh-pages' branch. Please check your Git setup.")
+      stop("❌ Failed to switch to 'gh-pages' branch.")
     }
   }
 
-  # Copy file
+  # Copy file to root
   message("Copying ", rendered_path, " to root directory...")
   success <- file.copy(rendered_path, deploy_path, overwrite = TRUE)
   if (!success) stop("Failed to copy HTML file to root.")
 
-  # Commit and push
+  # Git commit and push
   message("Committing and pushing to gh-pages branch...")
   system("git add index.html")
   system(paste0("git commit -m \"", commit_message, "\""))
   system("git push origin gh-pages")
+
+  # Switch back to original branch
+  if (original_branch != "gh-pages") {
+    message("Returning to original branch: '", original_branch, "'...")
+    system(paste("git checkout", original_branch))
+  }
 
   message("✅ Deployment complete.")
   invisible(deploy_path)

@@ -17,4 +17,5 @@ Invisibly returns the path to the deployed \code{index.html}.
 \description{
 Automatically switches to \code{gh-pages} branch, copies the HTML report from the
 \verb{site/} folder to the root directory, commits the update, and pushes to GitHub.
+It returns to your original Git branch afterward.
 }

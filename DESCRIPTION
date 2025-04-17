@@ -25,7 +25,6 @@ Imports:
     RTMB,
     SalmonForecasting (>= 0.1.0),
     sibregresr (>= 0.0.0.9000),
-    testthat,
     tidyr,
     zoo
 Remotes: 

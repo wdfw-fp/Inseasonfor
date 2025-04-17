@@ -130,7 +130,7 @@ get_usgs_flow_data <- function(forecastdate){
     # pull relevant columns, rename
     dplyr::select(date=Date,
                   # Dollar-sign is regex for ends with. Don't want the _cd columns
-                  cfs = testthat::matches("00060_00003$")
+                  cfs = dplyr::matches("00060_00003$")
 
     ) %>%
     # create the other columns
