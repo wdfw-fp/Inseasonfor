@@ -11,7 +11,7 @@ mod_results(
   Ocean_dat = ocean_cov,
   forecast = 122500,
   forecast_log_sd = 0.28,
-  mod_result_file = "forecast_results.csv"
+  mod_result_file = NULL
 )
 }
 \arguments{

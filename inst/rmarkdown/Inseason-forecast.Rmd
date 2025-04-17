@@ -30,7 +30,7 @@ forecast_md<-lubridate::mday(forecastdate)
 ```{r data}
 #fish data
 Bon_cnts<-bon_dat_fun(pred_date=NULL,
-                      count_file="fish_counts.csv",
+                      count_file=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
   dplyr::filter(month>=3)
 
@@ -116,7 +116,7 @@ The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average pro
 
 ```{r plot_cnts_env, fig.cap="Daily adult chinook salmon counts, flow, and temeprature measurements taken at Bonneville Dam."}
 flow_temp_dat  |> 
-  dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_USACoE , `River temp. (F)`=temp_f_ASACE) |> 
+  dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_USACoE , `River temp. (F)`=temp_f_USACE) |> 
   dplyr::mutate(Date=as.Date(Date),`Flow (kcfs)`=`Flow (kcfs)`/1000) |> 
   dplyr::inner_join(
     bon_yr_seas |> 

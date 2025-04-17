@@ -341,7 +341,7 @@ get_flow_day<-function(dat,day){
 #' @export
 #'
 #' @examples
-ocean_cov_fun<-function(pred_year,ocean_cov_file="PDO_NPGO.csv"){
+ocean_cov_fun<-function(pred_year,ocean_cov_file=NULL){
 
   # Use default location if not provided
   if (is.null(ocean_cov_file)) {

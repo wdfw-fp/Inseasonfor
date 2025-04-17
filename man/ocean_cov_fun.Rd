@@ -4,7 +4,7 @@
 \alias{ocean_cov_fun}
 \title{make some ocean covariates}
 \usage{
-ocean_cov_fun(pred_year, ocean_cov_file = "PDO_NPGO.csv")
+ocean_cov_fun(pred_year, ocean_cov_file = NULL)
 }
 \description{
 make some ocean covariates
