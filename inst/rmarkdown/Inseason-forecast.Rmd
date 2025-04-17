@@ -13,7 +13,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
                       message = FALSE)
-library(Inseasonfor)
+# library(Inseasonfor)
 
 
 forecastdate <- lubridate::today()-1
@@ -104,11 +104,11 @@ highlight_row <- which(Bon_ch_year$CountDate == forecastdate)
 ## {.tabset}
 
 
-The cumulative adult Chinook passage at Bonneville Dam through `r forecastdate  |>  format("%B %d, %Y")` is `r Bon_ch_day$total |> format(scientific=FALSE, big.mark=",")`.
+The cumulative adult Chinook passage at Bonneville Dam through `r forecastdate  |>  format("%B %d, %Y")` is **`r Bon_ch_day$total |> format(scientific=FALSE, big.mark=",")`**.
 
 <!-- The 5-year (`r paste0((forecast_year-5),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r counts_through |>  format("%B %d")` is `r round((Bon_ch_day$Ave_5yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_5yr),scientific=FALSE, big.mark=",")` fish. -->
 
-The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r forecastdate  |>  format("%B %d")` is `r round((Bon_ch_day$Ave_10yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected total dam count is `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` adult Chinook.
+The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville Dam through `r forecastdate  |>  format("%B %d")` is **`r round((Bon_ch_day$Ave_10yr)*100,1)`%**. Based on the cumulative counts to date and this proportion, the expected total dam count is `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` adult Chinook.
 
 
 
