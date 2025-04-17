@@ -23,7 +23,7 @@ render_page_fun<-function(
 
 
 
-  template_path <- system.file("rmarkdown","templates","Inseason-forecast","Inseason-forecast","Inseason-forecast.Rmd", package = "Inseasonfor")
+  template_path <- system.file("rmarkdown","Inseason-forecast.Rmd", package = "Inseasonfor")
 
   if (template_path == "") {
     stop("Template file not found. Ensure it exists in the package.")
