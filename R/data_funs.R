@@ -312,8 +312,8 @@ flow_ema_fun<-function(dat,start_month=2){
     dplyr::group_by(Year) %>% dplyr::arrange(flw_date) %>%
 
     # calculate exponential moving avg of flow using ema fn above
-    dplyr::mutate(cfs_USACoE=ema(cfs_mean, ratio=0.1),
-                  temp_f_USACE=ema(temp_mean, ratio=0.1)) %>%
+    dplyr::mutate(cfs_mean_ema=ema(cfs_mean, ratio=0.1),
+                  temp_mean_ema=ema(temp_mean, ratio=0.1)) %>%
     dplyr::ungroup()%>% dplyr::mutate(
       month=lubridate::month(flw_date),
       monthday=lubridate::mday(flw_date),
