@@ -4,7 +4,12 @@
 \alias{render_page_fun}
 \title{render_page_fun}
 \usage{
-render_page_fun(output_file = NULL, output_dir = NULL, params = NULL, ...)
+render_page_fun(
+  output_file = "Inseason.html",
+  output_dir = "site",
+  params = NULL,
+  ...
+)
 }
 \arguments{
 \item{...}{}

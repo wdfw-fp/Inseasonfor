@@ -11,8 +11,8 @@
 #'
 #' @examples
 render_page_fun<-function(
-    output_file = NULL,
-    output_dir = NULL,
+    output_file = "Inseason.html",
+    output_dir = "site",
     params = NULL,
 
      # output_file = "Forcast report.docx",
@@ -44,7 +44,8 @@ render_page_fun<-function(
 
     envir = new.env() # Avoids variable conflicts
   )
-
+  # return the path of the rendered HTML file
+  return(file.path(output_dir, output_file))
 }
 
 
