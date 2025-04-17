@@ -79,10 +79,12 @@ fit_joint_likelihood<-function(dat,forecast,forecast_log_sd){
   adrep_est<-as.list(sdr, "Est", report=TRUE)
   adrep_sd<-as.list(sdr, "Std", report=TRUE)
 
-  pred<-adrep_est$current_pred
-  pred_sd<-adrep_sd$current_pred
+  cnt<-RTMB_data$InseasonCount |> tail(1)
 
-  tibble::as_tibble(setNames(as.list(exp(qnorm(c(.025,.25,.5,.75,.975),pred,pred_sd))), c("Lo 95","Lo 50","predicted_abundance","Hi 50","Hi 95"))) |>
+  pred<-adrep_est$logitp |> tail(1)
+  pred_sd<-adrep_sd$logitp |> tail(1)
+
+  tibble::as_tibble(setNames(as.list(cnt/plogis(qnorm(c(.975,.75,.5,.25,.025),pred,pred_sd))), c("Lo 95","Lo 50","predicted_abundance","Hi 50","Hi 95"))) |>
     dplyr::bind_cols(tibble::tibble(
       logit_p= adrep_est$logitp |> tail(1)|> c(),
                                                                   logit_p_sd= adrep_sd$logitp |> tail(1) |> c(),
@@ -131,7 +133,8 @@ Inseasonfor <- function(data_list) {
   current_pred<-log(tail(InseasonCount,1)/tail(p,1))
 
   #### previous years' total vs predictions
-  nll <- nll - sum(RTMB::dnorm(final_bon_log, old_pred, exp(log_pred_sd), log = TRUE))
+  pred_sd<- exp(log_pred_sd)
+  nll <- nll - sum(RTMB::dnorm(final_bon_log, old_pred,pred_sd, log = TRUE))
   #### current year's preseason forecast vs prediction
   nll <- nll - RTMB::dnorm(log_pre_season_forecast, current_pred, preseason_log_sd, log = TRUE)
 

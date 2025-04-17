@@ -2,7 +2,11 @@
 title: "Inseason Bonneville Dam Chinook salmon passage predictions"
 date: "`r Sys.Date()`"
 output:
-  html_document: default
+  html_document: 
+    toc: true
+    toc_float: true
+    number_sections: false
+    theme: cosmo
 ---
 
 ```{r setup, include=FALSE}
@@ -27,7 +31,8 @@ forecast_md<-lubridate::mday(forecastdate)
 #fish data
 Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       count_file="fish_counts.csv",
-                      url = "https://www.fpc.org/adults/R_coeadultcount_runsum")
+                      url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
+  dplyr::filter(month>=3)
 
 
 bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
@@ -56,9 +61,10 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 
 
 # #fish data combined with river and ocean covariates for modeling
-# fish_river_ocean<-cnts_for_mod_fun(counts_through,Bon_cnts) |>
+# fish_river_ocean<-cnts_for_mod_fun(forecastdate,Bon_cnts) |>
 #   dplyr::left_join(flow_temp_dat |>
-#                      dplyr::filter(month==forecast_month,
+#                      dplyr::filter(
+#                        month==forecast_month,
 #                                    md==forecast_md) |>
 #                      dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
 #   ) |>
@@ -68,18 +74,18 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 #         dplyr::mutate(
 #           cnt_by_flow= cfs_mean_ema*log_cum_cnt,
 #           cnt_by_temp= temp_mean_ema *log_cum_cnt,
-#         )
+#         ) |>   dplyr::filter(year<=forecast_year) 
 # 
 # 
-# old_sib_R<-do_sibregresr_fun(fish_river_ocean,cov_vec=c("log_cum_cnt","cfs_mean_ema","cnt_by_temp"))
+# sib_R<-do_sibregresr_fun(fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
 # 
 # 
-# new_sib_R<-do_sibregresr_fun(fish_river_ocean,cov_vec=c("log_cum_cnt","cfs_mean_ema","cnt_by_temp"))
+# arima_F<-do_salmonForecasting_fun(data=fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
 # 
+#  JF_F<-fit_joint_likelihood(fish_river_ocean ,forecast = 180000,forecast_log_sd = .3)
 # 
-# new_arima<-do_salmonForecasting_fun(data=fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
-# 
-# old_arima<-do_salmonForecasting_fun(data=fish_river_ocean,cov_vec=c("log_cum_cnt","cfs_mean_ema"=))
+#  dplyr::bind_rows(sib_R,arima_F,JF_F) |> View()
+ 
 ```
 
 
@@ -89,12 +95,14 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 Bon_ch<-Bon_ch_fun(forecastdate,Bon_cnts)
 
 Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)|>
-  dplyr::filter(month>=4)
+  dplyr::filter(month>=3)
 Bon_ch_day<-Bon_ch_year |> dplyr::filter(CountDate==forecastdate)
 
 highlight_row <- which(Bon_ch_year$CountDate == forecastdate)
 
 ```
+## {.tabset}
+
 
 The cumulative adult Chinook passage at Bonneville Dam through `r forecastdate  |>  format("%B %d, %Y")` is `r Bon_ch_day$total |> format(scientific=FALSE, big.mark=",")`.
 
@@ -102,7 +110,7 @@ The cumulative adult Chinook passage at Bonneville Dam through `r forecastdate  
 
 The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r forecastdate  |>  format("%B %d")` is `r round((Bon_ch_day$Ave_10yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected total dam count is `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` adult Chinook.
 
-## {.tabset}
+
 
 ### Current year
 
@@ -157,8 +165,8 @@ model_results<-mod_results(forecastdate = forecastdate,
                            Count_dat = Bon_cnts,
                            River_dat = flow_temp_dat,
                            Ocean_dat = ocean_cov,
-                           forecast = ifelse(forecast_season=="spring",122500,38000),
-                           forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.33))
+                           forecast = ifelse(forecast_season=="spring",118078,36979),
+                           forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.3))
 
 
 # add 10 year timing to model resutls
@@ -225,7 +233,12 @@ flow_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%
   gt::fmt_integer(Pred:`Hi 95`) |> 
   gt::sub_missing() |> 
   gt::tab_footnote(footnote = "I have not yet implemented a retrospective assessment of performance for the joint-likelihood model",
-                   locations = gt::cells_body(columns=MAPE,rows = 3))
+                   locations = gt::cells_body(columns=MAPE,rows = 3)) |> 
+    gt::tab_footnote(footnote = "Prediction intervals for different model types are calculated using different methods, so are not directly comparable. See Methods Description for more detail.",
+                   locations = gt::cells_column_labels(columns=`Lo 95`:`Hi 95`))
+
+
+
 
 # htmltools::browsable(
 #   Pred_tab #|>
@@ -271,7 +284,7 @@ model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,colo
 ### Prediction interval plot
 
 
-```{r plot_pred_separate,fig.cap="Daily predictions and prediction intervals (95% and 50%).  Pridiction intervals that are >250% or <40% of the prediction are not shown." }
+```{r plot_pred_separate,fig.cap="Daily predictions and prediction intervals (95% and 50%).  Pridiction intervals that are >250% or <40% of the prediction are not shown. Prediction intervals for different model types are calculated using different methods, so are not directly comparable. See Methods Description for more details." }
 
 model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 95`,ymax=`Hi 95`),alpha=.5,color=NA)+ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 50`,ymax=`Hi 50`),alpha=.5,color=NA)+ggplot2::geom_line()+ggplot2::geom_point(size=2.5)+ggplot2::facet_wrap(~mod_type)+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="k",scale = 1e-3))+ ggplot2::scale_x_date(
     date_breaks = "5 days",
@@ -305,7 +318,7 @@ The prediction interval is based on the standard deviation (in lo-space) of fore
 
 #### ARIMA
 
-This is an ensemble of ARIMA models  fit with the [`SalmonForecasting` package](https://github.com/wdfw-fp/salmonforecast) (see README at the linked page for details). The covariates are the same as those described above for the DLM, and the prediction intervals are calculated in the same manner as well.
+This is an ensemble of ARIMA models  fit with the [`SalmonForecasting` package](https://github.com/wdfw-fp/salmonforecast) (see README at the linked page for details). The covariates are the same as those described above for the DLM. Prediction intervals are the weighted average of the prediction intervals provided by the `forecast::forecast()` function in `R`.
 
 #### Joint likelihood
 
@@ -324,14 +337,15 @@ This method takes the 10-year average of the proporiton of the run that was comp
 #### Prediction
 ```{r 10_year_pred}
 
-pred10yr_tab<-Bon_ch_year|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,"-04-01")),
+pred10yr_tab<-Bon_ch_year|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,"-03-01")),
                                                forecastdate)) |> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountDate,"%d-%b")) |> 
   
-  dplyr::select(Date,pred_Ave_10yr_10_days_early:pred_Ave_10yr_1_days_early,pred_Ave_10yr,pred_Ave_10yr_1_days_late:pred_Ave_10yr_10_days_late) |> 
-  `colnames<-`(c("Date",paste(10:1,"Days Early"),"10yr Average",paste(1:10,"Days Late"))) |> 
+  dplyr::select(Date,AdultChinook,pred_Ave_10yr_10_days_early:pred_Ave_10yr_1_days_early,pred_Ave_10yr,pred_Ave_10yr_1_days_late:pred_Ave_10yr_10_days_late) |> 
+  dplyr::mutate(cum_cnt=cumsum(AdultChinook),.after=AdultChinook) |> 
+  `colnames<-`(c("Date","Daily counts","Cumulative count",paste(10:1,"Days Early"),"10yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)format(round(x),scientific=FALSE, big.mark=","))) |>  knitr::kable(format = "html") |>
   kableExtra::kable_styling(full_width = TRUE) |>
-  kableExtra::column_spec(12, background = "lightgrey")|>
+  kableExtra::column_spec(14, background = "lightgrey")|>
   kableExtra::row_spec(highlight_row, background = "lightgrey")
 
 htmltools::browsable(
@@ -347,13 +361,13 @@ htmltools::browsable(
 #### Proportion complete
 
 ```{r 10_year_prop}
-prop10yr_tab<-Bon_ch_year |> dplyr::filter(CountDate>=                                           as.Date(paste0(forecast_year,"-04-01")))|> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountDate,"%d-%b")) |> 
+prop10yr_tab<-Bon_ch_year |> dplyr::filter(CountDate>=                                           as.Date(paste0(forecast_year,"-03-01")))|> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountDate,"%d-%b")) |> 
   
   dplyr::select(Date,Ave_10yr_10_days_early:Ave_10yr_1_days_early,Ave_10yr,Ave_10yr_1_days_late:Ave_10yr_10_days_late) |> 
   `colnames<-`(c("Date",paste(10:1,"Days Early"),"10yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)round(x,2))) |>  knitr::kable(format = "html") |>
   kableExtra::kable_styling(full_width = TRUE) |>
-  kableExtra::column_spec(12, background = "lightgrey")|>
+  kableExtra::column_spec(14, background = "lightgrey")|>
   kableExtra::row_spec(highlight_row, background = "lightgrey")
 
 htmltools::browsable(
@@ -372,14 +386,15 @@ htmltools::browsable(
 #### Prediction
 
 ```{r 5_year_pred}
-pred5yr_tab<-Bon_ch_year|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,"-04-01")),
+pred5yr_tab<-Bon_ch_year|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,"-03-01")),
                                                forecastdate)) |> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountDate,"%d-%b")) |> 
   
-  dplyr::select(Date,pred_Ave_5yr_10_days_early:pred_Ave_5yr_1_days_early,pred_Ave_5yr,pred_Ave_5yr_1_days_late:pred_Ave_5yr_10_days_late) |> 
-  `colnames<-`(c("Date",paste(10:1,"Days Early"),"5yr Average",paste(1:10,"Days Late"))) |> 
+  dplyr::select(Date,AdultChinook,pred_Ave_5yr_10_days_early:pred_Ave_5yr_1_days_early,pred_Ave_5yr,pred_Ave_5yr_1_days_late:pred_Ave_5yr_10_days_late) |> 
+  dplyr::mutate(cum_cnt=cumsum(AdultChinook),.after=AdultChinook) |> 
+  `colnames<-`(c("Date","Daily counts","Cumulative count",paste(10:1,"Days Early"),"10yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)format(round(x),scientific=FALSE, big.mark=","))) |>  knitr::kable(format = "html") |>
   kableExtra::kable_styling(full_width = TRUE) |>
-  kableExtra::column_spec(12, background = "lightgrey")|>
+  kableExtra::column_spec(14, background = "lightgrey")|>
   kableExtra::row_spec(highlight_row, background = "lightgrey")
 
 htmltools::browsable(
@@ -393,13 +408,13 @@ htmltools::browsable(
 #### Proportion complete
 
 ```{r 5_year_prop}
-prop5yr_tab<-Bon_ch_year |> dplyr::filter(CountDate>=                                           as.Date(paste0(forecast_year,"-04-01")))|> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountDate,"%d-%b")) |> 
+prop5yr_tab<-Bon_ch_year |> dplyr::filter(CountDate>=                                           as.Date(paste0(forecast_year,"-03-01")))|> dplyr::ungroup()|>  dplyr::mutate(Date=format(CountDate,"%d-%b")) |> 
   
   dplyr::select(Date,Ave_5yr_10_days_early:Ave_5yr_1_days_early,Ave_5yr,Ave_5yr_1_days_late:Ave_5yr_10_days_late) |> 
   `colnames<-`(c("Date",paste(10:1,"Days Early"),"5yr Average",paste(1:10,"Days Late"))) |> 
   dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)round(x,2))) |>  knitr::kable(format = "html") |>
   kableExtra::kable_styling(full_width = TRUE) |>
-  kableExtra::column_spec(12, background = "lightgrey")|>
+  kableExtra::column_spec(14, background = "lightgrey")|>
   kableExtra::row_spec(highlight_row, background = "lightgrey")
 
 htmltools::browsable(
