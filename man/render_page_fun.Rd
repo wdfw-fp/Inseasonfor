@@ -5,7 +5,7 @@
 \title{render_page_fun}
 \usage{
 render_page_fun(
-  output_file = "Inseason.html",
+  output_file = "index.html",
   output_dir = "site",
   params = NULL,
   ...

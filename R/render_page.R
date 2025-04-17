@@ -11,7 +11,7 @@
 #'
 #' @examples
 render_page_fun<-function(
-    output_file = "Inseason.html",
+    output_file = "index.html",
     output_dir = "site",
     params = NULL,
 
