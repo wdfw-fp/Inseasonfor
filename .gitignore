@@ -6,3 +6,5 @@
 .quarto
 *.html
 /site/
+# Ignore renv local library
+renv/library/
