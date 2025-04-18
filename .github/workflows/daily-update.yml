@@ -2,19 +2,16 @@ name: Daily Update and Deployment
 
 on:
   schedule:
-    - cron: '0 12 * * *'  # 5 AM PST
+    - cron: '0 12 * * *'  # Daily at 8 AM UTC
   push:
     branches:
-      - main
+      - main  # Triggers the workflow when you push changes to the main branch
 
 jobs:
   render_and_deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use the latest Ubuntu image
 
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
-
-     steps:
+    steps:
     # Checkout the repository
     - name: Checkout repository
       uses: actions/checkout@v2
