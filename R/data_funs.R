@@ -47,25 +47,25 @@ bon_dat_fun<-function(pred_date=NULL,
 
 
   # Use default location if not provided
-  if (is.null(count_file)) {
-    count_file <- get_default_count_path()
-  }
-
-  fs::dir_create(dirname(count_file))
-
-  #fetch data
-
-  if (file.exists(count_file)) {
-    local_data <-
-      readr::read_csv(count_file) |> tidyr::drop_na()
-
-    sdate <- max(local_data$CountDate  )+1
-    #
-  } else {
-    message("Local file not found at: ", count_file)
-    local_data<-NULL
+  # if (is.null(count_file)) {
+  #   count_file <- get_default_count_path()
+  # }
+  #
+  # fs::dir_create(dirname(count_file))
+  #
+  # #fetch data
+  #
+  # if (file.exists(count_file)) {
+  #   local_data <-
+  #     readr::read_csv(count_file) |> tidyr::drop_na()
+  #
+  #   sdate <- max(local_data$CountDate  )+1
+  #   #
+  # } else {
+  #   message("Local file not found at: ", count_file)
+  #   local_data<-NULL
     sdate<-"1980-01-01"
-  }
+  # }
 
   if(is.null(pred_date)){
     edate<-Sys.Date()-1
@@ -73,7 +73,7 @@ bon_dat_fun<-function(pred_date=NULL,
     edate<-pred_date
   }
 
-  if(edate>=sdate){
+  # if(edate>=sdate){
     new_dat<-readr::read_csv(glue::glue("{url}_salmon_getresults.php?dam=BON&sdate={sdate}&edate={edate}"),
                              col_types=readr::cols(CountDate=readr::col_date(format="%m/%d/%Y"))) |>
       dplyr::select(CountDate,AdultChinook,JackChinook) |>
@@ -87,14 +87,14 @@ bon_dat_fun<-function(pred_date=NULL,
                       .data$month>=3~"spring",
                       TRUE~"Winter?"
                     ))
-
-    dat<-dplyr::bind_rows(local_data, new_dat)
-    readr::write_csv(dat,count_file)
-    return(dat)
-  }
-  else{
-    return(local_data)
-  }
+return(new_dat)
+#     dat<-dplyr::bind_rows(local_data, new_dat)
+#     readr::write_csv(dat,count_file)
+#     return(dat)
+#   }
+#   else{
+#     return(local_data)
+#   }
 }
 
 
@@ -232,22 +232,22 @@ get_usace_flow_temp_data <- function(forecastdate,startdate,dam="BON") {
 get_flow_data<-function(forecastdate=NULL,flow_file=NULL){
 
   # Use default location if not provided
-  if (is.null(flow_file)) {
-    flow_file <- get_default_flow_path()
-  }
-
-
-  if (file.exists(flow_file)) {
-    local_data <-
-      readr::read_csv(flow_file)
-
-    sdate <- max(local_data$flw_date)+1
-    #
-  } else {
-    message("Local file not found at: ", flow_file)
-    local_data<-NULL
+  # if (is.null(flow_file)) {
+  #   flow_file <- get_default_flow_path()
+  # }
+  #
+  #
+  # if (file.exists(flow_file)) {
+  #   local_data <-
+  #     readr::read_csv(flow_file)
+  #
+  #   sdate <- max(local_data$flw_date)+1
+  #   #
+  # } else {
+  #   message("Local file not found at: ", flow_file)
+  #   local_data<-NULL
     sdate<-"1980-01-01"
-  }
+  # }
 
   if(is.null(forecastdate)){
     edate<-Sys.Date()-1
@@ -255,42 +255,42 @@ get_flow_data<-function(forecastdate=NULL,flow_file=NULL){
     edate<-forecastdate
   }
 
-  if(edate>=sdate){
+  # if(edate>=sdate){
     #obtain the data from multile web sources
     ##usgs
     # usgs_dat<- get_usgs_flow_data(forecastdate)
     ##CBR
-    CBR_DAT_Dat<- try( get_CBR_DART_flow_temp_data(edate,start_year = lubridate::year(sdate))|>
-                         dplyr::filter(flw_date>=sdate))
-
+    # CBR_DAT_Dat<- try( get_CBR_DART_flow_temp_data(edate,start_year = lubridate::year(sdate))|>
+    #                      dplyr::filter(flw_date>=sdate))
+    #
 
     ##USACoE
     USACoE_dat<-get_usace_flow_temp_data(edate,startdate=as.Date(sdate),dam="BON") %>%
       dplyr::mutate(flw_date=  as.Date(Date)) %>% #make date column names match
-      dplyr::mutate(cfs_USACoE=(round(`Flow (kcfs)`,0)*1000),
+      dplyr::mutate(cfs_USACoE=(round(`Flow (kcfs)`,0)),
                     temp_f_USACE=`River temp. (F)`) %>% #convert from kcfs to cfs and round to nearest throusandto match usgs data
       dplyr::select(flw_date,cfs_USACoE,temp_f_USACE)#select columns of interest
 
     #merge them where there is a column for each sources
-    if(is.null(dim(CBR_DAT_Dat))) {
-      all_dat<-USACoE_dat %>%
-        dplyr::mutate(cfs_mean=cfs_USACoE,temp_mean=temp_f_USACE)
-    }else{
-      all_dat<-USACoE_dat %>% dplyr::full_join(CBR_DAT_Dat,by="flw_date") %>%
-        dplyr::mutate(cfs_mean=dplyr::select(.,c(cfs_USACoE,cfs_CBR)) %>% rowMeans(na.rm=T),
-                      temp_mean=dplyr::select(.,c(temp_f_USACE,temp_f_CBR)) %>% rowMeans(na.rm=T)
-        )
-    }
+    # if(is.null(dim(CBR_DAT_Dat))) {
+    #   all_dat<-USACoE_dat %>%
+    #     dplyr::mutate(cfs_mean=cfs_USACoE,temp_mean=temp_f_USACE)
+    # }else{
+      all_dat<-USACoE_dat #%>% dplyr::full_join(CBR_DAT_Dat,by="flw_date") %>%
+    #     dplyr::mutate(cfs_mean=dplyr::select(.,c(cfs_USACoE,cfs_CBR)) %>% rowMeans(na.rm=T),
+    #                   temp_mean=dplyr::select(.,c(temp_f_USACE,temp_f_CBR)) %>% rowMeans(na.rm=T)
+    #     )
+    # }
 
-
-    dat<-dplyr::bind_rows(local_data, all_dat |> dplyr::filter(flw_date >max(local_data$flw_date)) ) |> dplyr::filter(flw_date<lubridate::today())
-    readr::write_csv(dat,flow_file)
-    return(dat|> flow_ema_fun())
-
-  }
-  else{
-    return(local_data |> flow_ema_fun())
-  }
+return(all_dat|> dplyr::filter(flw_date<lubridate::today()))
+  #   dat<-dplyr::bind_rows(local_data, all_dat |> dplyr::filter(flw_date >max(local_data$flw_date)) ) |> dplyr::filter(flw_date<lubridate::today())
+  #   readr::write_csv(dat,flow_file)
+  #   return(dat|> flow_ema_fun())
+  #
+  # }
+  # else{
+  #   return(local_data |> flow_ema_fun())
+  # }
 }
 
 
@@ -312,8 +312,8 @@ flow_ema_fun<-function(dat,start_month=2){
     dplyr::group_by(Year) %>% dplyr::arrange(flw_date) %>%
 
     # calculate exponential moving avg of flow using ema fn above
-    dplyr::mutate(cfs_mean_ema=ema(cfs_mean, ratio=0.1),
-                  temp_mean_ema=ema(temp_mean, ratio=0.1)) %>%
+    dplyr::mutate(cfs_mean_ema=ema(cfs_USACoE, ratio=0.1),
+                  temp_mean_ema=ema(temp_f_USACE, ratio=0.1)) %>%
     dplyr::ungroup()%>% dplyr::mutate(
       month=lubridate::month(flw_date),
       monthday=lubridate::mday(flw_date),
@@ -344,18 +344,18 @@ get_flow_day<-function(dat,day){
 ocean_cov_fun<-function(pred_year,ocean_cov_file=NULL){
 
   # Use default location if not provided
-  if (is.null(ocean_cov_file)) {
-    ocean_cov_file <- get_default_ocean_path()
-  }
-
-  if(file.exists(ocean_cov_file)){
-    local_dat<-readr::read_csv(ocean_cov_file)
-  }else{
-    message("Local file not found at: ", ocean_cov_file)
-    local_dat<-data.frame(Year=-1)
-  }
-
-  if((max(local_dat$Year)<pred_year)){
+  # if (is.null(ocean_cov_file)) {
+  #   ocean_cov_file <- get_default_ocean_path()
+  # }
+  #
+  # if(file.exists(ocean_cov_file)){
+  #   local_dat<-readr::read_csv(ocean_cov_file)
+  # }else{
+  #   message("Local file not found at: ", ocean_cov_file)
+  #   local_dat<-data.frame(Year=-1)
+  # }
+  #
+  # if((max(local_dat$Year)<pred_year)){
     dat<- readr::read_table("https://www.o3d.org/npgo/data/NPGO.txt", skip = 29, col_names = FALSE, comment = "#") |>
       dplyr::filter(!is.na(X2)) |>
       dplyr::rename(Year = X1, Month = X2, NPGO = X3) |>
@@ -391,12 +391,12 @@ ocean_cov_fun<-function(pred_year,ocean_cov_file=NULL){
       tidyr::pivot_wider(values_from = value, names_from = c(Season, name))
 
 
-    readr::write_csv(dat,ocean_cov_file)
+    # readr::write_csv(dat,ocean_cov_file)
 
     return(dat)
-  }else{
-    return(local_dat)
-  }
+  # }else{
+  #   return(local_dat)
+  # }
 
 }
 

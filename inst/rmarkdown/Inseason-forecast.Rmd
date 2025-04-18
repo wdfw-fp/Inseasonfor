@@ -51,7 +51,7 @@ if(counts_through<forecastdate){
 }
 
 # flow temp data
-flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = "flow_temp_dat.csv") 
+flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = NULL) |> flow_ema_fun()
 
 
 #ocean cov data
@@ -205,8 +205,7 @@ covar_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in
 flow_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%c("Joint_Lik")) |> dplyr::select(`Coefficient`=coef_cfs_mean_ema) |>   
   dplyr::mutate(
     `Covariate` =(flow_temp_dat |>
-    dplyr::filter(month==forecast_month,
-                  md==forecast_md) |> tidyr::fill(cfs_mean_ema) |> dplyr::pull(cfs_mean_ema) |> log() |> scale() |> c() |> tail(1)),
+    dplyr::filter(month==forecast_month,md==forecast_md) |> tidyr::fill(cfs_mean_ema) |> dplyr::pull(cfs_mean_ema) |> log() |> scale() |> c() |> tail(1)),
     Effect=`Covariate`*`Coefficient`
     
     
