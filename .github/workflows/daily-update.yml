@@ -1,6 +1,8 @@
 name: Daily Update and Deployment
+
 env:
   GITHUB_PAT: ${{ secrets.GH_PAT }}
+
 on:
   schedule:
     - cron: '0 12 * * *'  # 5 AM Pacific / 12:00 UTC
@@ -13,29 +15,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Set up R environment
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: 'release'
           cache: true
 
+      # Install system dependencies
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+          sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libfontconfig1-dev
 
-      - name: Install R packages
+      # Set pkg-config path if necessary
+      - name: Set pkg-config path
         run: |
-          Rscript -e 'install.packages(c("remotes", "rmarkdown"))'
+          export PKG_CONFIG_PATH=/usr/lib/pkgconfig
+          echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
+
+      # Install required R packages
+      - name: Install R dependencies
+        run: |
+          Rscript -e 'install.packages(c("remotes", "rmarkdown", "systemfonts", "gdtools", "officer", "ragg", "flextable", "textshaping", "SalmonForecasting", "sibregresr"), repos="https://cloud.r-project.org")'
+
+      # Install the Inseasonfor package
+      - name: Install Inseasonfor package
+        run: |
           Rscript -e 'remotes::install_github("marksorel8/Inseasonfor")'
 
+      # Render and deploy the report
       - name: Render and deploy report
         run: |
           Rscript -e 'Inseasonfor::render_and_deploy()'
 
+      # Commit CSV files if changed
       - name: Commit CSV files if changed
         run: |
           git config --global user.email "mark.sorel@dfw.wa.gov"
@@ -43,6 +61,7 @@ jobs:
           git add inst/data-cache/*.csv
           git diff --cached --quiet || (git commit -m "Update CSV files" && git push origin main)
 
+      # Push updated index.html to gh-pages
       - name: Push updated index.html to gh-pages
         run: |
           git fetch origin gh-pages
