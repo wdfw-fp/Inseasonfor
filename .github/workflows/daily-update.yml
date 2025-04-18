@@ -1,0 +1,51 @@
+name: Daily Update and Deployment
+
+# Trigger the workflow every day at a specific time (e.g., 4:00 AM UTC)
+on:
+  schedule:
+    - cron: '0 12 * * *'  # Daily at 8 AM UTC (adjust to your preferred time)
+  push:
+    branches:
+      - main  # Triggers the workflow when you push changes to the main branch
+
+jobs:
+  render_and_deploy:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu image
+
+    steps:
+    # Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # Set up R environment
+    - name: Set up R
+      uses: r-lib/actions/setup-r@v1
+
+    # Install R dependencies (including your package)
+    - name: Install dependencies
+      run: |
+        install.packages(c('remotes', 'rmarkdown', 'git2r'))
+        remotes::install_github('marksorel8/Inseasonfor')
+
+    # Run R script to render the report
+    - name: Render the report
+      run: |
+        Rscript -e "Inseasonfor::render_page_fun()"
+
+    # Commit the updated .csv files to GitHub (if any changes)
+    - name: Commit CSV files if changed
+      run: |
+        git config --global user.email "mark.sorel@dfw.wa.gov"
+        git config --global user.name "marksorel8"
+        git add inst/data-cache/*.csv
+        git diff --quiet || git commit -m "Update CSV files" && git push
+
+    # Deploy the site to gh-pages branch
+    - name: Deploy to gh-pages
+      run: |
+        git fetch origin gh-pages
+        git checkout gh-pages
+        cp inst/Rmarkdown/site/index.html .  # Copy the rendered HTML
+        git add index.html
+        git commit -m "Deploy updated report to gh-pages"
+        git push origin gh-pages
