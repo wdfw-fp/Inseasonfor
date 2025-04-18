@@ -1,11 +1,14 @@
 name: Daily Update and Deployment
 
+# on:
+#   schedule:
+#     - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
+#   push:
+#     branches:
+#       - main  # Run on changes to main branch
+
 on:
-  schedule:
-    - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
-  push:
-    branches:
-      - main  # Run on changes to main branch
+  workflow_dispatch:
 
 jobs:
   render_and_deploy:
@@ -27,11 +30,11 @@ jobs:
             libpng-dev \
             libjpeg-dev \
             libtiff5-dev \
-            libfontconfig1-dev \
-            libfreetype6-dev \
-            libharfbuzz-dev \
-            libfribidi-dev \
+            libgif-dev \
+            libcairo2-dev \
             libx11-dev \
+            libxext-dev \
+            libnode-dev \
             pandoc
 
       # 3. Set up R
