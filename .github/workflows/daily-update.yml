@@ -19,23 +19,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Install system dependencies (minimal but covers most R packages)
+      # 2. Set up system dependencies
+      # System dependencies required by Inseasonfor and SalmonForecasting packages,
+      # generated using pak::pkg_sysreqs() on Ubuntu
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libcurl4-openssl-dev \
-            libssl-dev \
-            libxml2-dev \
-            libpng-dev \
-            libjpeg-dev \
-            libtiff5-dev \
-            libgif-dev \
-            libcairo2-dev \
-            libx11-dev \
-            libxext-dev \
-            libnode-dev \
-            pandoc
+          sudo apt-get -y update
+          sudo apt-get -y install libx11-dev libcurl4-openssl-dev libssl-dev make \
+            pandoc libfreetype6-dev libjpeg-dev libpng-dev libtiff-dev libicu-dev \
+            libfontconfig1-dev libfribidi-dev libharfbuzz-dev libxml2-dev \
+            libcairo2-dev zlib1g-dev
 
       # 3. Set up R
       - name: Set up R
@@ -60,7 +53,7 @@ jobs:
       # 6. Run your rendering function from the package
       - name: Render the report
         run: |
-          Rscript -e 'Inseasonfor::render_page_fun(params = list(use_dev_version = FALSE))'
+          Rscript -e 'Inseasonfor::render_page_fun()'
 
       # 7. Commit the updated CSVs (if changed)
       - name: Commit updated CSV files
