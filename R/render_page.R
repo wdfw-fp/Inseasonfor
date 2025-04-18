@@ -13,7 +13,7 @@
 render_page_fun<-function(
     output_file = "index.html",
     output_dir = "site",
-    params = NULL,
+    params = list(use_dev_version = FALSE),
 
      # output_file = "Forcast report.docx",
     # output_dir = getwd(),

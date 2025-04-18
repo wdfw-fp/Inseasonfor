@@ -16,11 +16,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Set up R
+      # 2. Install system dependencies (minimal but covers most R packages)
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev \
+            libpng-dev \
+            libjpeg-dev \
+            libtiff5-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libharfbuzz-dev \
+            libfribidi-dev \
+            libx11-dev \
+            pandoc
+
+      # 3. Set up R
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
 
-      # 3. Cache R packages installed by renv
+      # 4. Cache R packages installed by renv
       - name: Cache R packages
         uses: actions/cache@v3
         with:
@@ -29,19 +47,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-renv-
 
-      # 4. Install renv and restore environment
+      # 5. Install renv and restore environment
       - name: Install and restore renv
         run: |
           install.packages("renv")
           renv::restore()
         shell: Rscript {0}
 
-      # 5. Run your rendering function from the package
+      # 6. Run your rendering function from the package
       - name: Render the report
         run: |
-          Rscript -e 'Inseasonfor::render_page_fun()'
+          Rscript -e 'Inseasonfor::render_page_fun(params = list(use_dev_version = FALSE))'
 
-      # 6. Commit the updated CSVs (if changed)
+      # 7. Commit the updated CSVs (if changed)
       - name: Commit updated CSV files
         run: |
           git config --global user.email "mark.sorel@dfw.wa.gov"
@@ -49,7 +67,7 @@ jobs:
           git add inst/data-cache/*.csv || true
           git diff --cached --quiet || git commit -m "Update CSV files" && git push
 
-      # 7. Deploy to gh-pages
+      # 8. Deploy to gh-pages
       - name: Deploy to gh-pages
         run: |
           git fetch origin gh-pages

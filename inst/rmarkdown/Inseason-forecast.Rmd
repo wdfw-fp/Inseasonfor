@@ -7,16 +7,20 @@ output:
     toc_float: true
     number_sections: false
     theme: cosmo
+params:
+  use_dev_version: true
+    
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE,
                       message = FALSE)
-if (requireNamespace("Inseasonfor", quietly = TRUE)) {
-  library(Inseasonfor)
+
+if (params$use_dev_version) {
+  pkgload::load_all(".")
 } else {
-  devtools::load_all(".")
+  library(Inseasonfor)
 }
 
 
@@ -78,7 +82,7 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 #         dplyr::mutate(
 #           cnt_by_flow= cfs_mean_ema*log_cum_cnt,
 #           cnt_by_temp= temp_mean_ema *log_cum_cnt,
-#         ) |>   dplyr::filter(year<=forecast_year) 
+#         ) |>   dplyr::filter(year<=forecast_year)
 # 
 # 
 # sib_R<-do_sibregresr_fun(fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
@@ -89,7 +93,7 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 #  JF_F<-fit_joint_likelihood(fish_river_ocean ,forecast = 180000,forecast_log_sd = .3)
 # 
 #  dplyr::bind_rows(sib_R,arima_F,JF_F) |> View()
- 
+
 ```
 
 

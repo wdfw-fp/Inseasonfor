@@ -7,7 +7,7 @@
 render_page_fun(
   output_file = "index.html",
   output_dir = "site",
-  params = NULL,
+  params = list(use_dev_version = FALSE),
   ...
 )
 }

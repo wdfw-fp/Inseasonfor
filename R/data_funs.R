@@ -115,33 +115,33 @@ ema <- function(x, ratio){
 
 
 
-# mean daily flow (cfs) at The Dalles from USGS- Begins 1/1/1939
-get_usgs_flow_data <- function(forecastdate){
-  # Download the data
-  dataRetrieval::readNWISdv(
-    # Columbia River at The Dalles, Site 14105700
-    siteNumbers = "14105700",
-    startDate = "1939-1-1",
-    endDate = forecastdate,
-    #"00060 is flow, 00010 is temp
-    parameterCd = c("00060", "00010"),
-    statCd = "00003"
-  ) %>%
-    # pull relevant columns, rename
-    dplyr::select(date=Date,
-                  # Dollar-sign is regex for ends with. Don't want the _cd columns
-                  cfs = dplyr::matches("00060_00003$")
-
-    ) %>%
-    # create the other columns
-    dplyr::mutate(Year=year(date)) %>%
-    dplyr::transmute(
-      Year = Year,
-      flw_date=date,
-      cfs = cfs
-    )
-
-}
+# # mean daily flow (cfs) at The Dalles from USGS- Begins 1/1/1939
+# get_usgs_flow_data <- function(forecastdate){
+#   # Download the data
+#   dataRetrieval::readNWISdv(
+#     # Columbia River at The Dalles, Site 14105700
+#     siteNumbers = "14105700",
+#     startDate = "1939-1-1",
+#     endDate = forecastdate,
+#     #"00060 is flow, 00010 is temp
+#     parameterCd = c("00060", "00010"),
+#     statCd = "00003"
+#   ) %>%
+#     # pull relevant columns, rename
+#     dplyr::select(date=Date,
+#                   # Dollar-sign is regex for ends with. Don't want the _cd columns
+#                   cfs = dplyr::matches("00060_00003$")
+#
+#     ) %>%
+#     # create the other columns
+#     dplyr::mutate(Year=year(date)) %>%
+#     dplyr::transmute(
+#       Year = Year,
+#       flw_date=date,
+#       cfs = cfs
+#     )
+#
+# }
 
 
 
