@@ -60,26 +60,26 @@ jobs:
           install.packages(".", repos = NULL, type = "source")
         shell: Rscript {0}
 
-      # 7. Create writable directory for model output
-      - name: Create data-cache folder
-        run: mkdir -p data-cache
+      # # 7. Create writable directory for model output
+      # - name: Create data-cache folder
+      #   run: mkdir -p data-cache
 
-      # 8. Run your rendering function from the package
-      - name: Render the report
-        run: |
-          Rscript -e 'Inseasonfor::render_page_fun()'
+      # # 8. Run your rendering function from the package
+      # - name: Render the report
+      #   run: |
+      #     Rscript -e 'Inseasonfor::render_page_fun()'
 
-      # 9. Commit the updated CSVs (if changed)
-      - name: Commit updated CSV files
-        run: |
-          git config --global user.email "mark.sorel@dfw.wa.gov"
-          git config --global user.name "marksorel8"
-          git add inst/data-cache/*.csv || true
-          git diff --cached --quiet || git commit -m "Update CSV files" && git push
+      # # 9. Commit the updated CSVs (if changed)
+      # - name: Commit updated CSV files
+      #   run: |
+      #     git config --global user.email "mark.sorel@dfw.wa.gov"
+      #     git config --global user.name "marksorel8"
+      #     git add inst/data-cache/*.csv || true
+      #     git diff --cached --quiet || git commit -m "Update CSV files" && git push
 
-      # 10. Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: inst/InseasonForecast
+      # # 10. Deploy to GitHub Pages
+      # - name: Deploy to GitHub Pages
+      #   uses: JamesIves/github-pages-deploy-action@v4
+      #   with:
+      #     branch: gh-pages
+      #     folder: inst/InseasonForecast
