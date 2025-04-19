@@ -90,6 +90,8 @@ mod_results<-function(forecastdate,
   }
 
     dat<-dplyr::bind_rows(local_data,new_dat)
+    message("Writing forecast results to: ", mod_result_file)
+    message("Writable directory? ", file.access(dirname(mod_result_file), 2) == 0)
     readr::write_csv(dat,mod_result_file)
     return(dat)
 }else{

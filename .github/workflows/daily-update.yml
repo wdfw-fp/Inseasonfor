@@ -53,18 +53,23 @@ jobs:
           renv::status()
         shell: Rscript {0}
 
+
       # 6. Install the Inseasonfor package from local source
       - name: Install Inseasonfor from local source
         run: |
           install.packages(".", repos = NULL, type = "source")
         shell: Rscript {0}
 
-      # 7. Run your rendering function from the package
+      # 7. Create writable directory for model output
+      - name: Create data-cache folder
+        run: mkdir -p data-cache
+
+      # 8. Run your rendering function from the package
       - name: Render the report
         run: |
           Rscript -e 'Inseasonfor::render_page_fun()'
 
-      # 8. Commit the updated CSVs (if changed)
+      # 9. Commit the updated CSVs (if changed)
       - name: Commit updated CSV files
         run: |
           git config --global user.email "mark.sorel@dfw.wa.gov"
@@ -72,12 +77,9 @@ jobs:
           git add inst/data-cache/*.csv || true
           git diff --cached --quiet || git commit -m "Update CSV files" && git push
 
-      # 9. Deploy to gh-pages
-      - name: Deploy to gh-pages
-        run: |
-          git fetch origin gh-pages
-          git checkout gh-pages
-          cp inst/Rmarkdown/site/index.html index.html
-          git add index.html
-          git commit -m "Deploy updated report to gh-pages" || echo "No changes to commit"
-          git push origin gh-pages
+      # 10. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: inst/InseasonForecast
