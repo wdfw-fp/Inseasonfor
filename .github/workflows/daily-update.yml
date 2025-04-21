@@ -71,7 +71,7 @@ jobs:
           Rscript -e 'Inseasonfor::render_page_fun(mod_result_file = "data-cache/forecast_results.csv")'
 
       # 9. Commit the updated CSVs (if changed)
-       - name: Commit and push updated CSV files
+      - name: Commit updated CSV files
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
@@ -79,7 +79,9 @@ jobs:
           git config --global user.name "marksorel8"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/marksorel8/Inseasonfor.git
           git add inst/data-cache/*.csv || true
-          git diff --cached --quiet || git commit -m "Update CSV files" && git push
+          git diff --cached --quiet || git commit -m "Update CSV files"
+          git push
+
 
       # 10. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages

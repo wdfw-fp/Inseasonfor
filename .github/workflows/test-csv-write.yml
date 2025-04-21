@@ -8,34 +8,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Set up system dependencies
       - name: Install system dependencies
         run: |
           sudo apt-get -y update
           sudo apt-get -y install libcurl4-openssl-dev libssl-dev
 
-      # 3. Set up R
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
 
-      # 4. Install necessary R packages
       - name: Install required R packages
         run: |
-         Rscript -e 'install.packages("vroom")'
+          Rscript -e 'install.packages("vroom")'
 
-      # 5. Run the CSV write test
       - name: Run CSV write test
         run: |
           Rscript -e 'source("test_csv_write.R"); test_csv_write()'
 
-      # 9. Commit the updated CSVs (if changed)
       - name: Commit updated CSV files
-        run: |
-          - name: Commit and push updated CSV files
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
@@ -43,5 +35,5 @@ jobs:
           git config --global user.name "marksorel8"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/marksorel8/Inseasonfor.git
           git add inst/data-cache/*.csv || true
-          git diff --cached --quiet || git commit -m "Update CSV files" && git push
-
+          git diff --cached --quiet || git commit -m "Update CSV files"
+          git push
