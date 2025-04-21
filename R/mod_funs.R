@@ -21,14 +21,15 @@ mod_results<-function(forecastdate,
                       mod_result_file=NULL){
 
 
-  if (is.null(mod_result_file)) {
-    mod_result_file <- get_default_model_result_path()
-  }
+  # if (is.null(mod_result_file)) {
+  #   mod_result_file <- get_default_model_result_path()
+  # }
 
+file_path<-here::here("inst", "data-cache", "forecast_results.csv")
 
-  if (file.exists(mod_result_file)) {
+  if (file.exists(file_path)) {
     local_data <-
-      readr::read_csv(here::here("inst", "data-cache", "forecast_results.csv"))
+      readr::read_csv(file_path)
 
     sdate <- max(local_data$date)+1
     #
@@ -89,13 +90,9 @@ mod_results<-function(forecastdate,
 
   }
 
-    dat<-dplyr::bind_rows(local_data,new_dat)
-    message("Writing forecast results to: ", mod_result_file)
-    message("Writable directory? ", file.access(dirname(mod_result_file), 2) == 0)
-    readr::write_csv(dat,mod_result_file)
 
     tryCatch({
-      vroom::vroom_write(data, mod_result_file)
+      readr::write_csv(data, file_path)
     }, error = function(e) {
       message("Error writing file: ", e)
       dir.create("data-cache", showWarnings = FALSE)

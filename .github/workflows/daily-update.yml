@@ -56,18 +56,6 @@ jobs:
           renv::status()
         shell: Rscript {0}
 
-      # 6. Create writable directory for model output
-      - name: Create data-cache folder
-        run: mkdir -p data-cache
-
-      # Add these steps immediately after creating the data-cache folder
-      - name: Ensure data-cache permissions
-        run: |
-          chmod -R 777 data-cache
-          ls -ld data-cache
-
-      - name: Debug data-cache permissions
-        run: ls -ld data-cache && touch data-cache/test_file
 
       # 7. Install the Inseasonfor package from local source
       - name: Install Inseasonfor from local source
@@ -75,7 +63,25 @@ jobs:
           install.packages(".", repos = NULL, type = "source")
         shell: Rscript {0}
 
-      # 8. Run your rendering function from the package
+      # # 6. Create writable directory for model output
+      # - name: Create data-cache folder
+      #   run: mkdir -p data-cache
+
+      # # Ensure permissions for the data-cache directory
+      # - name: Ensure data-cache permissions
+      #   run: |
+      #     chmod -R 777 data-cache
+      #     ls -ld data-cache
+      #
+      # # Debug the directory permissions before rendering
+      # - name: Debug data-cache permissions
+      #   run: |
+      #     echo "Checking data-cache directory..."
+      #     ls -ld data-cache
+      #     touch data-cache/test_file
+      #     echo "data-cache directory is writable."
+
+         # 8. Run your rendering function from the package
       - name: Render the report
         run: |
           Rscript -e 'Inseasonfor::render_page_fun(mod_result_file = "data-cache/forecast_results.csv")'
