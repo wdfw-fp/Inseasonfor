@@ -25,7 +25,8 @@ jobs:
       # 4. Install necessary R packages
       - name: Install required R packages
         run: |
-          install.packages("vroom")
+          install.packages("vroom", repos = "http://cran.r-project.org")
+
 
       # 5. Run the CSV write test
       - name: Run CSV write test
