@@ -60,13 +60,14 @@ jobs:
       - name: Create data-cache folder
         run: mkdir -p data-cache
 
+      - name: Debug data-cache permissions
+        run: ls -ld data-cache && touch data-cache/test_file
+
       # 7. Install the Inseasonfor package from local source
       - name: Install Inseasonfor from local source
         run: |
           install.packages(".", repos = NULL, type = "source")
         shell: Rscript {0}
-
-
 
       # 8. Run your rendering function from the package
       - name: Render the report
@@ -78,13 +79,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          git config --global user.email "mark.sorel@dfw.wa.gov"
-          git config --global user.name "marksorel8"
+          echo "Configuring Git..."
+          git config user.email "mark.sorel@dfw.wa.gov"
+          git config user.name "marksorel8"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/marksorel8/Inseasonfor.git
+          echo "Staging updated CSV files..."
           git add inst/data-cache/*.csv || true
+          echo "Checking for changes..."
           git diff --cached --quiet || git commit -m "Update CSV files"
-          git push
-
+          echo "Pushing changes..."
+          git push origin main
 
       # 10. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages

@@ -28,7 +28,7 @@ mod_results<-function(forecastdate,
 
   if (file.exists(mod_result_file)) {
     local_data <-
-      readr::read_csv(mod_result_file)
+      readr::read_csv(here::here("inst", "data-cache", "forecast_results.csv"))
 
     sdate <- max(local_data$date)+1
     #
