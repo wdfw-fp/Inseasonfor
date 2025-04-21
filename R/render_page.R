@@ -15,7 +15,7 @@ render_page_fun<-function(
     output_dir = "site",
     params = list(use_dev_version = FALSE),
     mod_result_file = NULL,
-    exit_on_error = TRUE
+    exit_on_error = TRUE,
      # output_file = "Forcast report.docx",
     # output_dir = getwd(),
     ...
