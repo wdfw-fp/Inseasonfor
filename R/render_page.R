@@ -122,6 +122,21 @@ deploy_site <- function(site_dir = "site", commit_message = "Update GitHub Pages
 #' @export
 render_and_deploy <- function(..., commit_message = "Update GitHub Pages site") {
   render_page_fun(output_file = "index.html", output_dir = "site", ...)
+
+  # Check if file is staged or modified
+  status <- system('git status --porcelain inst/data-cache/forecast_results.csv', intern = TRUE)
+
+
+  # Define a commit message with timestamp for clarity
+  commit_message_results_update <- paste("Update forecast_results.csv on", Sys.Date())
+
+  if (length(status) > 0) {
+    system('git add inst/data-cache/forecast_results.csv')
+    system(sprintf('git commit -m "%s"', commit_message_results_update))
+    system('git push')
+  }
+
+
   deploy_site(commit_message = commit_message)
 }
 
