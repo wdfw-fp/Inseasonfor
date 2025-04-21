@@ -9,3 +9,4 @@
 # Ignore renv local library
 renv/library/
 inst/scripts/daily_render.R
+log.txt
