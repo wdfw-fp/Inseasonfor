@@ -31,3 +31,12 @@ jobs:
       - name: Run CSV write test
         run: |
           Rscript -e 'source("test_csv_write.R"); test_csv_write()'
+
+      # 9. Commit the updated CSVs (if changed)
+      - name: Commit updated CSV files
+        run: |
+          git config --global user.email "mark.sorel@dfw.wa.gov"
+          git config --global user.name "marksorel8"
+          git add inst/data-cache/*.csv || true
+          git diff --cached --quiet || git commit -m "Update CSV files" && git push
+
