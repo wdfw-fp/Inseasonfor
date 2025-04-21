@@ -2,7 +2,7 @@
 
 test_csv_write <- function() {
   # Define the output directory and file
-  output_dir <- "data-cache"
+  output_dir <- "inst/data-cache"
   output_file <- file.path(output_dir, "test_forecast_results.csv")
 
   # Create the directory if it doesn't exist
