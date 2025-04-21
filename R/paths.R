@@ -30,6 +30,7 @@ get_default_ocean_path <- function() {
 get_default_model_result_path <- function() {
   if (nzchar(Sys.getenv("GITHUB_ACTIONS"))) {
     # Use a writable top-level folder in GitHub Actions
+    print("GITHUB_ACTIONS")
     return("data-cache/forecast_results.csv")
   } else {
     # Use inst/ for local development

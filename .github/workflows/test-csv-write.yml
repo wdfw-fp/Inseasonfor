@@ -3,6 +3,10 @@ name: Test CSV Write
 on:
   workflow_dispatch:
 
+
+permissions:
+  contents: write
+
 jobs:
   test_csv_write:
     runs-on: ubuntu-latest
