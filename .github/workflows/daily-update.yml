@@ -60,6 +60,12 @@ jobs:
       - name: Create data-cache folder
         run: mkdir -p data-cache
 
+      # Add these steps immediately after creating the data-cache folder
+      - name: Ensure data-cache permissions
+        run: |
+          chmod -R 777 data-cache
+          ls -ld data-cache
+
       - name: Debug data-cache permissions
         run: ls -ld data-cache && touch data-cache/test_file
 

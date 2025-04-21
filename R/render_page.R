@@ -15,15 +15,17 @@ render_page_fun<-function(
     output_dir = "site",
     params = list(use_dev_version = FALSE),
     mod_result_file = NULL,
+    exit_on_error = TRUE
      # output_file = "Forcast report.docx",
     # output_dir = getwd(),
     ...
 ){
-
+  tryCatch({
   # If mod_result_file is not passed, set it to default path
   if (is.null(mod_result_file)) {
     mod_result_file <- get_default_model_result_path()
   }
+
 
   # Add mod_result_file to params to pass it to the .Rmd
   params$mod_result_file <- mod_result_file
@@ -50,8 +52,18 @@ render_page_fun<-function(
 
     envir = new.env() # Avoids variable conflicts
   )
-  # return the path of the rendered HTML file
-  return(file.path(output_dir, output_file))
+  # Log the output path
+  rendered_file_path <- file.path(output_dir, output_file)
+  message("Rendered file saved to: ", rendered_file_path)
+
+  # Return the path of the rendered file
+  return(rendered_file_path)
+
+  }, error = function(e) {
+    message("Error during rendering: ", e$message)
+    if (exit_on_error) quit(status = 1)
+  })
+
 }
 
 

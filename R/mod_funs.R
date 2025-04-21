@@ -93,6 +93,16 @@ mod_results<-function(forecastdate,
     message("Writing forecast results to: ", mod_result_file)
     message("Writable directory? ", file.access(dirname(mod_result_file), 2) == 0)
     readr::write_csv(dat,mod_result_file)
+
+    tryCatch({
+      vroom::vroom_write(data, mod_result_file)
+    }, error = function(e) {
+      message("Error writing file: ", e)
+      dir.create("data-cache", showWarnings = FALSE)
+      Sys.chmod("data-cache", mode = "0777", use_umask = TRUE)
+      stop(e) # Rethrow the error after handling
+    })
+
     return(dat)
 }else{
   return(local_data)

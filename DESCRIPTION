@@ -28,6 +28,7 @@ Imports:
     SalmonForecasting (>= 0.1.0),
     sibregresr (>= 0.0.0.9000),
     tidyr,
+    vroom,
     zoo
 Remotes: 
     wdfw-fp/sibregresr,
