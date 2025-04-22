@@ -116,6 +116,13 @@ jobs:
           echo "Pushing changes..."
           git push origin main
 
+      # Debug inst directory
+      - name: Debug inst directory
+        run: |
+          echo "Listing files in inst directory:"
+          ls -l inst/
+
+
       # 10. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
