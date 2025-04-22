@@ -170,6 +170,11 @@ Bon_ch_year |>
 ## Model predictions {.tabset}
 
 ```{r modeling,include=FALSE}
+
+
+print(getwd()) 
+
+
 model_results<-read.csv(here::here("inst","data-cache","forecast_results.csv"))
 
 # model_results<-mod_results(forecastdate = forecastdate,

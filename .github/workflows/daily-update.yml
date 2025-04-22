@@ -20,6 +20,19 @@ jobs:
       # 1. Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history and files (not shallow)
+
+
+      - name: Debug forecast_results.csv
+        run: |
+          echo "Current working directory:"
+          pwd
+          echo "Listing files in inst/data-cache:"
+          ls -l inst/data-cache/
+          echo "Contents of forecast_results.csv:"
+          cat inst/data-cache/forecast_results.csv || echo "File does not exist or cannot be read"
+
 
       # 2. Set up system dependencies
       - name: Install system dependencies
@@ -80,6 +93,11 @@ jobs:
       #     ls -ld data-cache
       #     touch data-cache/test_file
       #     echo "data-cache directory is writable."
+
+      - name: Set working directory
+        run: cd $GITHUB_WORKSPACE
+
+
 
          # 8. Run your rendering function from the package
       - name: Render the report
