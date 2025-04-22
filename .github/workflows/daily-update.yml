@@ -24,15 +24,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # # 2. Debug forecast_results.csv
-      # - name: Debug forecast_results.csv
-      #   run: |
-      #     echo "Current working directory:"
-      #     pwd
-      #     echo "Listing files in inst/data-cache:"
-      #     ls -l inst/data-cache/ || echo "Directory does not exist"
-      #     echo "Contents of forecast_results.csv:"
-      #     cat inst/data-cache/forecast_results.csv || echo "File does not exist"
+
 
       # 3. Install system dependencies
       - name: Install system dependencies
@@ -63,8 +55,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-renv-
 
-      - name: Debug renv cache contents
-        run: du -sh ~/.cache/R/renv || echo "No cache directory"
 
 
       # 5. Install renv and restore environment
@@ -116,17 +106,6 @@ jobs:
           git diff --cached --quiet || git commit -m "Update CSV files"
           git push origin main
 
-      # # 11. Debug inst directory (optional)
-      # - name: Debug inst directory
-      #   run: |
-      #     echo "Listing files in inst directory:"
-      #     ls -l inst/
-
-      # # 12. Debug site directory before deployment
-      # - name: Debug site directory
-      #   run: |
-      #     ls -lh site || echo "site/ does not exist"
-      #     ls -lh site/index.html || echo "index.html not found"
 
       # 13. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
