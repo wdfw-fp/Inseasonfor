@@ -172,12 +172,9 @@ Bon_ch_year |>
 ```{r modeling,include=FALSE}
 
 
-print(getwd()) 
-print(here::here("inst", "data-cache", "forecast_results.csv"))
-print(file.exists(here::here("inst", "data-cache", "forecast_results.csv")))
 
 
-model_results<-read.csv(here::here("inst","data-cache","forecast_results.csv"))
+model_results<-read.csv(system.file("data-cache/forecast_results.csv",package="Inseasonfor"))
 
 # model_results<-mod_results(forecastdate = forecastdate,
 #                            Count_dat = Bon_cnts,
