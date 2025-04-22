@@ -25,7 +25,7 @@ mod_results<-function(forecastdate,
   #   mod_result_file <- get_default_model_result_path()
   # }
 
-file_path<-here::here("inst", "data-cache", "forecast_results.csv")
+file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
 
   if (file.exists(file_path)) {
     local_data <-
@@ -91,8 +91,10 @@ file_path<-here::here("inst", "data-cache", "forecast_results.csv")
   }
 
 
+    dat<-dplyr::bind_rows(local_data,new_dat)
+
     tryCatch({
-      readr::write_csv(data, file_path)
+      readr::write_csv(dat, file_path)
     }, error = function(e) {
       message("Error writing file: ", e)
       dir.create("data-cache", showWarnings = FALSE)
