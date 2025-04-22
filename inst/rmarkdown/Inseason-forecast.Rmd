@@ -169,12 +169,12 @@ Bon_ch_year |>
 
 ## Model predictions {.tabset}
 
-```{r modeling,include=FALSE}
+```{r modeling1,include=FALSE}
 
 
 
 
-model_results<-read.csv(system.file("data-cache/forecast_results.csv",package="Inseasonfor"))
+model_results<-readr::read_csv(system.file("data-cache/forecast_results.csv",package="Inseasonfor"))
 
 # model_results<-mod_results(forecastdate = forecastdate,
 #                            Count_dat = Bon_cnts,
@@ -343,7 +343,7 @@ This is a version of a model that has been used for this purpose of in-season fo
 
 #### 10 year average run timing
 
-This method takes the 10-year average of the proporiton of the run that was complete on a given day and uses it to expand the cumulative counts to date. Performance and prediction intervals are based on a `5-year retrospective as described above for the DLM. 
+This method takes the 10-year average of the proporiton of the run that was complete on a given day and uses it to expand the cumulative counts to date. Performance and prediction intervals are based on a 15-year retrospective as described above for the DLM. 
 
 
 ## Average timing info {.tabset}
