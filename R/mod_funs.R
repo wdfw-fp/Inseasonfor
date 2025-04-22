@@ -93,15 +93,13 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
     dat<-dplyr::bind_rows(local_data,new_dat)
 
     tryCatch({
-      readr::write_csv(dat, file_path)
+      readr::write_csv(dat, "inst/data-cache/forecast_results.csv")
     }, error = function(e) {
       message("Error writing file: ", e)
       dir.create("data-cache", showWarnings = FALSE)
       Sys.chmod("data-cache", mode = "0777", use_umask = TRUE)
       stop(e) # Rethrow the error after handling
     })
-
-    data.frame(a=1:3) |> write.csv(system.file("data-cache/test.csv",package="Inseasonfor"))
 
     return(dat)
 }else{
