@@ -173,6 +173,8 @@ Bon_ch_year |>
 
 
 print(getwd()) 
+print(here::here("inst", "data-cache", "forecast_results.csv"))
+print(file.exists(here::here("inst", "data-cache", "forecast_results.csv")))
 
 
 model_results<-read.csv(here::here("inst","data-cache","forecast_results.csv"))

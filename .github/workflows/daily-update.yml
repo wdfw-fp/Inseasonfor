@@ -94,10 +94,6 @@ jobs:
       #     touch data-cache/test_file
       #     echo "data-cache directory is writable."
 
-      - name: Set working directory
-        run: cd $GITHUB_WORKSPACE
-
-
 
          # 8. Run your rendering function from the package
       - name: Render the report
