@@ -2,7 +2,7 @@ name: Daily Update and Deployment
 
 on:
   workflow_dispatch:
-  # You can uncomment this to schedule daily runs
+  # Uncomment to schedule daily runs
   # schedule:
   #   - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
   # push:
@@ -21,20 +21,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch all history and files (not shallow)
+          fetch-depth: 0
 
-
+      # 2. Debug forecast_results.csv
       - name: Debug forecast_results.csv
         run: |
           echo "Current working directory:"
           pwd
           echo "Listing files in inst/data-cache:"
-          ls -l inst/data-cache/
+          ls -l inst/data-cache/ || echo "Directory does not exist"
           echo "Contents of forecast_results.csv:"
-          cat inst/data-cache/forecast_results.csv || echo "File does not exist or cannot be read"
+          cat inst/data-cache/forecast_results.csv || echo "File does not exist"
 
-
-      # 2. Set up system dependencies
+      # 3. Install system dependencies
       - name: Install system dependencies
         run: |
           sudo apt-get -y update
@@ -43,87 +42,69 @@ jobs:
             libfontconfig1-dev libfribidi-dev libharfbuzz-dev libxml2-dev \
             libcairo2-dev zlib1g-dev libnode-dev
 
-      # 3. Set up R
+      # 4. Set up R
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
 
-      # 4. Cache R packages installed by renv
+      # 5. Cache R packages managed by renv
       - name: Cache R packages
         uses: actions/cache@v3
         with:
-          path: renv/library
+          path: |
+            renv/library
+            renv/cache
           key: ${{ runner.os }}-renv-${{ hashFiles('renv.lock') }}
           restore-keys: |
             ${{ runner.os }}-renv-
 
-      # 5. Install renv and restore environment
+      # 6. Debug renv folders before install
+      - name: Check for renv/library before restore
+        run: |
+          echo "Checking for renv/library and renv/cache:"
+          ls -l renv/ || echo "renv/ does not exist"
+          ls -l renv/library || echo "renv/library does not exist"
+          ls -l renv/cache || echo "renv/cache does not exist"
+
+      # 7. Install renv and restore environment
       - name: Install and restore renv
         run: |
           install.packages("renv")
           renv::restore()
         shell: Rscript {0}
 
-      # (Optional) 5.5 Check renv status (useful for debugging)
+      # 8. (Optional) Check renv status
       - name: Check renv status
-        run: |
-          renv::status()
+        run: renv::status()
         shell: Rscript {0}
 
-
-      # 7. Install the Inseasonfor package from local source
+      # 9. Install the Inseasonfor package from local source
       - name: Install Inseasonfor from local source
-        run: |
-          install.packages(".", repos = NULL, type = "source")
+        run: install.packages(".", repos = NULL, type = "source")
         shell: Rscript {0}
 
-      # # 6. Create writable directory for model output
-      # - name: Create data-cache folder
-      #   run: mkdir -p data-cache
-
-      # # Ensure permissions for the data-cache directory
-      # - name: Ensure data-cache permissions
-      #   run: |
-      #     chmod -R 777 data-cache
-      #     ls -ld data-cache
-      #
-      # # Debug the directory permissions before rendering
-      # - name: Debug data-cache permissions
-      #   run: |
-      #     echo "Checking data-cache directory..."
-      #     ls -ld data-cache
-      #     touch data-cache/test_file
-      #     echo "data-cache directory is writable."
-
-
-         # 8. Run your rendering function from the package
+      # 10. Render the report using package function
       - name: Render the report
-        run: |
-          Rscript -e 'Inseasonfor::render_page_fun()'
+        run: Rscript -e 'Inseasonfor::render_page_fun()'
 
-      # 9. Commit the updated CSVs (if changed)
+      # 11. Commit updated CSVs (if changed)
       - name: Commit updated CSV files
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          echo "Configuring Git..."
           git config user.email "mark.sorel@dfw.wa.gov"
           git config user.name "marksorel8"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/marksorel8/Inseasonfor.git
-          echo "Staging updated CSV files..."
           git add inst/data-cache/*.csv || true
-          echo "Checking for changes..."
           git diff --cached --quiet || git commit -m "Update CSV files"
-          echo "Pushing changes..."
           git push origin main
 
-      # Debug inst directory
+      # 12. Debug inst directory (optional)
       - name: Debug inst directory
         run: |
           echo "Listing files in inst directory:"
           ls -l inst/
 
-
-      # 10. Deploy to GitHub Pages
+      # 13. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
