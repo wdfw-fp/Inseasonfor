@@ -92,8 +92,10 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
 
     dat<-dplyr::bind_rows(local_data,new_dat)
 
+    file_path2 <- file.path("inst", "data-cache", "forecast_results.csv")
+    message("Writing forecast results to: ", file_path2)
     tryCatch({
-      readr::write_csv(dat, "inst/data-cache/forecast_results.csv")
+      readr::write_csv(dat, file_path2)
     }, error = function(e) {
       message("Error writing file: ", e)
       dir.create("data-cache", showWarnings = FALSE)
