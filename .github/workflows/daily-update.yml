@@ -3,11 +3,9 @@ name: Daily Update and Deployment
 
 on:
   workflow_dispatch:
-
-
   # Uncomment to schedule daily runs
-  # schedule:
-  #   - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
+  schedule:
+    - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
   # push:
   #   branches:
   #     - main
@@ -79,7 +77,7 @@ jobs:
 
       # Debug: List files in inst/data-cache
       - name: List files in inst/data-cache
-      run: ls -l inst/data-cache || echo "inst/data-cache directory does not exist"
+        run: ls -l inst/data-cache || echo "inst/data-cache directory does not exist"
 
 
       # Debug: Check git status
