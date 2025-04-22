@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE)
 
 # if (params$use_dev_version) {
-  pkgload::load_all(".")
+  # pkgload::load_all(".")
 # } else {
   # library(Inseasonfor)
 # }
