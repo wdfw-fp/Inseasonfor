@@ -66,14 +66,17 @@ jobs:
         shell: Rscript {0}
 
 
-      # 8. Install the Inseasonfor package from local source
-      - name: Install Inseasonfor from local source
-        run: install.packages(".", repos = NULL, type = "source")
-        shell: Rscript {0}
+      # # 8. Install the Inseasonfor package from local source
+      # - name: Install Inseasonfor from local source
+      #   run: install.packages(".", repos = NULL, type = "source")
+      #   shell: Rscript {0}
 
-      # 9. Render the report using package function
-      - name: Render the report
-        run: Rscript -e 'Inseasonfor::render_page_fun()'
+      - name: Render the report using custom script
+        run: Rscript R/run_render.R
+
+      # # 9. Render the report using package function
+      # - name: Render the report
+      #   run: Rscript -e 'Inseasonfor::render_page_fun()'
 
       # Debug: List files in inst/data-cache
       - name: List files in inst/data-cache
