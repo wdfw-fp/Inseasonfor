@@ -3,8 +3,8 @@ name: Daily Update and Deployment
 on:
   workflow_dispatch:
   # Uncomment to schedule daily runs
-  schedule:
-    - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
+  # schedule:
+  #   - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
   # push:
   #   branches:
   #     - main
