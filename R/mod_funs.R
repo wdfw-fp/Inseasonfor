@@ -101,6 +101,8 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
       stop(e) # Rethrow the error after handling
     })
 
+    data.frame(a=1:3) |> write.csv(system.file("data-cache/test.csv",package="Inseasonfor"))
+
     return(dat)
 }else{
   return(local_data)

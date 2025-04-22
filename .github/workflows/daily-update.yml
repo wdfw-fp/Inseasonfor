@@ -84,8 +84,27 @@ jobs:
       - name: Render the report
         run: Rscript -e 'Inseasonfor::render_page_fun()'
 
+      # Debug: List files in inst/data-cache
+      - name: List files in inst/data-cache
+      run: ls -l inst/data-cache || echo "inst/data-cache directory does not exist"
+
+
+      # Debug: Check git status
+      - name: Check git status before commit
+        run: git status
+
+      # Check timestamps of .csv files before committing
+      - name: Check CSV file timestamps
+        run: |
+          ls -lh inst/data-cache/*.csv
+
+      # Ensure correct permissions for the CSV files
+      - name: Set correct permissions for CSV files
+        run: chmod -R 777 inst/data-cache/*.csv
+
+
       # 10. Commit updated CSVs (if changed)
-      - name: Commit updated CSV files
+      - name: Commit updated CSV files (verbose)
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
@@ -93,6 +112,7 @@ jobs:
           git config user.name "marksorel8"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/marksorel8/Inseasonfor.git
           git add inst/data-cache/*.csv || true
+          git status
           git diff --cached --quiet || git commit -m "Update CSV files"
           git push origin main
 
