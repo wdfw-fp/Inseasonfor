@@ -50,13 +50,6 @@ jobs:
           r-version: '4.4.0'
 
 
-      # 5. Install renv and restore environment
-      - name: Install and restore renv
-        run: |
-          install.packages("renv")
-          renv::restore()
-        shell: Rscript {0}
-
       # 6. Debug renv paths after restore (debug step after restore)
       - name: Check renv cache path
         run: ls -l ~/.cache/R/renv || echo "No cache directory yet"
@@ -69,6 +62,18 @@ jobs:
           key: ${{ runner.os }}-renv-${{ hashFiles('renv.lock') }}
           restore-keys: |
             ${{ runner.os }}-renv-
+
+      - name: Debug renv cache contents
+        run: du -sh ~/.cache/R/renv || echo "No cache directory"
+
+
+      # 5. Install renv and restore environment
+      - name: Install and restore renv
+        run: |
+          install.packages("renv")
+          renv::restore()
+        shell: Rscript {0}
+
 
       # 8. Install the Inseasonfor package from local source
       - name: Install Inseasonfor from local source
