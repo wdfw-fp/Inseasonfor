@@ -170,13 +170,15 @@ Bon_ch_year |>
 ## Model predictions {.tabset}
 
 ```{r modeling,include=FALSE}
-model_results<-mod_results(forecastdate = forecastdate,
-                           Count_dat = Bon_cnts,
-                           River_dat = flow_temp_dat,
-                           Ocean_dat = ocean_cov,
-                           forecast = ifelse(forecast_season=="spring",118078,36979),
-                           forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.3),
-                            mod_result_file = params$mod_result_file)
+model_results<-read.csv(here::here("inst","data-cache","forecast_results.csv"))
+
+# model_results<-mod_results(forecastdate = forecastdate,
+#                            Count_dat = Bon_cnts,
+#                            River_dat = flow_temp_dat,
+#                            Ocean_dat = ocean_cov,
+#                            forecast = ifelse(forecast_season=="spring",118078,36979),
+#                            forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.3),
+#                             mod_result_file = params$mod_result_file)
 
 
 # add 10 year timing to model resutls
