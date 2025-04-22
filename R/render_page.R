@@ -14,7 +14,7 @@ render_page_fun<-function(
     output_file = "index.html",
     output_dir = "site",
     params = list(use_dev_version = FALSE),
-    mod_result_file = NULL,
+    # mod_result_file = NULL,
     exit_on_error = TRUE,
      # output_file = "Forcast report.docx",
     # output_dir = getwd(),
@@ -22,13 +22,13 @@ render_page_fun<-function(
 ){
   tryCatch({
   # If mod_result_file is not passed, set it to default path
-  if (is.null(mod_result_file)) {
-    mod_result_file <- get_default_model_result_path()
-  }
+  # if (is.null(mod_result_file)) {
+  #   mod_result_file <- get_default_model_result_path()
+  # }
 
 
   # Add mod_result_file to params to pass it to the .Rmd
-  params$mod_result_file <- mod_result_file
+  # params$mod_result_file <- mod_result_file
 
 
   template_path <- system.file("rmarkdown","Inseason-forecast.Rmd", package = "Inseasonfor")

@@ -98,7 +98,7 @@ jobs:
          # 8. Run your rendering function from the package
       - name: Render the report
         run: |
-          Rscript -e 'Inseasonfor::render_page_fun(mod_result_file = "data-cache/forecast_results.csv")'
+          Rscript -e 'Inseasonfor::render_page_fun()'
 
       # 9. Commit the updated CSVs (if changed)
       - name: Commit updated CSV files
