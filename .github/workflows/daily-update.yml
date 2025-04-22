@@ -104,9 +104,16 @@ jobs:
           echo "Listing files in inst directory:"
           ls -l inst/
 
+      # Debug site directory before deployment
+      - name: Debug site directory
+        run: |
+          ls -lh site || echo "site/ does not exist"
+          ls -lh site/index.html || echo "index.html not found"
+
+
       # 13. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: inst/rmarkdown
+          folder: site

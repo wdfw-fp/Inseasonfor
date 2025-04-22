@@ -30,12 +30,21 @@ render_page_fun<-function(
   # Add mod_result_file to params to pass it to the .Rmd
   # params$mod_result_file <- mod_result_file
 
+    #add site directory
+    if (!dir.exists(output_dir)) {
+      dir.create(output_dir, recursive = TRUE)
+    }
+
+
 
   template_path <- system.file("rmarkdown","Inseason-forecast.Rmd", package = "Inseasonfor")
 
   if (template_path == "") {
     stop("Template file not found. Ensure it exists in the package.")
   }
+
+
+
 
   rmarkdown::render(
     input = template_path,
