@@ -58,20 +58,14 @@ jobs:
         shell: Rscript {0}
 
       # 6. Debug renv paths after restore (debug step after restore)
-      - name: Debug renv paths after restore
-        run: |
-          echo "Checking renv paths after restore:"
-          ls -l renv/ || echo "renv/ does not exist"
-          ls -l renv/library || echo "renv/library does not exist"
-          ls -l renv/cache || echo "renv/cache does not exist"
+      - name: Check renv cache path
+        run: ls -l ~/.cache/R/renv || echo "No cache directory yet"
 
       # 7. Cache R packages managed by renv (move this step after renv::restore())
       - name: Cache R packages
         uses: actions/cache@v3
         with:
-          path: |
-            renv/library
-            renv/cache
+          path: ~/.cache/R/renv
           key: ${{ runner.os }}-renv-${{ hashFiles('renv.lock') }}
           restore-keys: |
             ${{ runner.os }}-renv-
