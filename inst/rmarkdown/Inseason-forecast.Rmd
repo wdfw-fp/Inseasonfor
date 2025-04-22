@@ -179,8 +179,10 @@ model_results<-read.csv(here::here("inst","data-cache","forecast_results.csv"))
 #                            forecast = ifelse(forecast_season=="spring",118078,36979),
 #                            forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.3),
 #                             mod_result_file = params$mod_result_file)
+```
 
 
+```{r modeling2,include=FALSE}
 # add 10 year timing to model resutls
 model_results2<-model_results |> 
   dplyr::bind_rows(
