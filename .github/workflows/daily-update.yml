@@ -1,17 +1,3 @@
-name: Daily Update and Deployment
-
-on:
-  workflow_dispatch:
-  # Uncomment to schedule daily runs
-  # schedule:
-  #   - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
-  # push:
-  #   branches:
-  #     - main
-
-permissions:
-  contents: write
-
 jobs:
   render_and_deploy:
     runs-on: ubuntu-latest
@@ -23,15 +9,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 2. Debug forecast_results.csv
-      - name: Debug forecast_results.csv
-        run: |
-          echo "Current working directory:"
-          pwd
-          echo "Listing files in inst/data-cache:"
-          ls -l inst/data-cache/ || echo "Directory does not exist"
-          echo "Contents of forecast_results.csv:"
-          cat inst/data-cache/forecast_results.csv || echo "File does not exist"
+      # # 2. Debug forecast_results.csv
+      # - name: Debug forecast_results.csv
+      #   run: |
+      #     echo "Current working directory:"
+      #     pwd
+      #     echo "Listing files in inst/data-cache:"
+      #     ls -l inst/data-cache/ || echo "Directory does not exist"
+      #     echo "Contents of forecast_results.csv:"
+      #     cat inst/data-cache/forecast_results.csv || echo "File does not exist"
 
       # 3. Install system dependencies
       - name: Install system dependencies
@@ -45,8 +31,26 @@ jobs:
       # 4. Set up R
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.4.0'
 
-      # 5. Cache R packages managed by renv
+
+      # 5. Install renv and restore environment
+      - name: Install and restore renv
+        run: |
+          install.packages("renv")
+          renv::restore()
+        shell: Rscript {0}
+
+      # 6. Debug renv paths after restore (debug step after restore)
+      - name: Debug renv paths after restore
+        run: |
+          echo "Checking renv paths after restore:"
+          ls -l renv/ || echo "renv/ does not exist"
+          ls -l renv/library || echo "renv/library does not exist"
+          ls -l renv/cache || echo "renv/cache does not exist"
+
+      # 7. Cache R packages managed by renv (move this step after renv::restore())
       - name: Cache R packages
         uses: actions/cache@v3
         with:
@@ -57,36 +61,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-renv-
 
-      # 6. Debug renv folders before install
-      - name: Check for renv/library before restore
-        run: |
-          echo "Checking for renv/library and renv/cache:"
-          ls -l renv/ || echo "renv/ does not exist"
-          ls -l renv/library || echo "renv/library does not exist"
-          ls -l renv/cache || echo "renv/cache does not exist"
-
-      # 7. Install renv and restore environment
-      - name: Install and restore renv
-        run: |
-          install.packages("renv")
-          renv::restore()
-        shell: Rscript {0}
-
-      # 8. (Optional) Check renv status
-      - name: Check renv status
-        run: renv::status()
-        shell: Rscript {0}
-
-      # 9. Install the Inseasonfor package from local source
+      # 8. Install the Inseasonfor package from local source
       - name: Install Inseasonfor from local source
         run: install.packages(".", repos = NULL, type = "source")
         shell: Rscript {0}
 
-      # 10. Render the report using package function
+      # 9. Render the report using package function
       - name: Render the report
         run: Rscript -e 'Inseasonfor::render_page_fun()'
 
-      # 11. Commit updated CSVs (if changed)
+      # 10. Commit updated CSVs (if changed)
       - name: Commit updated CSV files
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -98,18 +82,17 @@ jobs:
           git diff --cached --quiet || git commit -m "Update CSV files"
           git push origin main
 
-      # 12. Debug inst directory (optional)
-      - name: Debug inst directory
-        run: |
-          echo "Listing files in inst directory:"
-          ls -l inst/
+      # # 11. Debug inst directory (optional)
+      # - name: Debug inst directory
+      #   run: |
+      #     echo "Listing files in inst directory:"
+      #     ls -l inst/
 
-      # Debug site directory before deployment
-      - name: Debug site directory
-        run: |
-          ls -lh site || echo "site/ does not exist"
-          ls -lh site/index.html || echo "index.html not found"
-
+      # # 12. Debug site directory before deployment
+      # - name: Debug site directory
+      #   run: |
+      #     ls -lh site || echo "site/ does not exist"
+      #     ls -lh site/index.html || echo "index.html not found"
 
       # 13. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
