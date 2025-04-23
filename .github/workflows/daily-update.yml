@@ -40,9 +40,9 @@ jobs:
           r-version: '4.4.0'
 
 
-      # 6. Debug renv paths after restore (debug step after restore)
-      - name: Check renv cache path
-        run: ls -l ~/.cache/R/renv || echo "No cache directory yet"
+      # # 6. Debug renv paths after restore (debug step after restore)
+      # - name: Check renv cache path
+      #   run: ls -l ~/.cache/R/renv || echo "No cache directory yet"
 
       # 7. Cache R packages managed by renv (move this step after renv::restore())
       - name: Cache R packages
@@ -81,10 +81,10 @@ jobs:
       # - name: Render the report
       #   run: Rscript -e 'Inseasonfor::render_page_fun()'
 
-      - name: Debug file location
-        run: |
-          echo "Current working directory: $(pwd)"
-          ls -R
+      # - name: Debug file location
+      #   run: |
+      #     echo "Current working directory: $(pwd)"
+      #     ls -R
 
 
       - name: Move CSV into inst/data-cache for Git tracking
