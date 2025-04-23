@@ -24,11 +24,6 @@ if (params$use_dev_version) {
 }
 
 
-forecastdate <- lubridate::today()-1
-forecast_season<-chk_season(forecastdate)
-forecast_year<-lubridate::year(forecastdate)
-forecast_month<-lubridate::month(forecastdate)
-forecast_md<-lubridate::mday(forecastdate)
 
 #summer chinook forecast = 38,000, log_sd~ 0.33
 #spring chinook forecast = 122500, log_sd~ 0.3
@@ -42,20 +37,20 @@ Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
   dplyr::filter(month>=3)
 
+forecastdate <- Bon_cnts |> dplyr::pull(CountDate) |>  max()
+forecast_season<-chk_season(forecastdate)
+forecast_year<-lubridate::year(forecastdate)
+forecast_month<-lubridate::month(forecastdate)
+forecast_md<-lubridate::mday(forecastdate)
+
+
+
 
 bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
 
 
 if(nrow(bon_yr_seas)==0){
   errorCondition("There are no counts for the season of interest")
-}
-
-#max date
-counts_through<- bon_yr_seas |>  dplyr::pull(CountDate) |>  max()
-
-if(counts_through<forecastdate){
-  forecastdate<-counts_through
-  warning("counts are not available through the provided forecast date. Returning results based on the most updated counts available.")
 }
 
 # flow temp data
