@@ -71,6 +71,12 @@ jobs:
       #   run: install.packages(".", repos = NULL, type = "source")
       #   shell: Rscript {0}
 
+      - name: Debug working directory
+        run: |
+          echo "Current working directory: $(pwd)"
+          ls -la
+
+
       - name: Render the report using custom script
         run: Rscript inst/scripts/run_render.R
 

@@ -93,6 +93,19 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
     dat<-dplyr::bind_rows(local_data,new_dat)
 
     file_path2 <- file.path("inst", "data-cache", "forecast_results.csv")
+
+
+    if (file.exists(file_path2)) {
+      message("File exists at: ", file_path2)
+      file.info(file_path2)
+      Sys.chmod(file_path2, mode = "0777", use_umask = TRUE)
+    }
+
+
+    # dir.create(dirname(file_path2), recursive = TRUE, showWarnings = FALSE)
+    # Sys.chmod(dirname(file_path2), mode = "0777", use_umask = TRUE)
+
+
     message("Writing forecast results to: ", file_path2)
     tryCatch({
       readr::write_csv(dat, file_path2)
