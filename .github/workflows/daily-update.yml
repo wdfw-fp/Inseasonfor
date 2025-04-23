@@ -84,9 +84,10 @@ jobs:
       # - name: Render the report
       #   run: Rscript -e 'Inseasonfor::render_page_fun()'
 
-      # Debug: List files in inst/data-cache
-      - name: List files in inst/data-cache
-        run: ls -l inst/data-cache || echo "inst/data-cache directory does not exist"
+      - name: Move CSV into inst/data-cache for Git tracking
+        run: |
+          mkdir -p inst/data-cache
+          mv data-cache/forecast_results.csv inst/data-cache/
 
 
       # Debug: Check git status
@@ -100,7 +101,7 @@ jobs:
 
       # Ensure correct permissions for the CSV files
       - name: Set correct permissions for CSV files
-        run: chmod -R 777 inst/data-cache/*.csv
+        run: chmod -R 644 inst/data-cache/*.csv
 
 
       # 10. Commit updated CSVs (if changed)
@@ -116,6 +117,9 @@ jobs:
           git diff --cached --quiet || git commit -m "Update CSV files"
           git push origin main
 
+
+      - name: Final check: list committed CSV
+        run: git log -1 --stat
 
       # 13. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
