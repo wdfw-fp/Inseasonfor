@@ -249,7 +249,7 @@ do_salmonForecasting_fun<-function(data,cov_vec=c("log_cum_cnt","cnt_by_flow")){
   ave_coefs<-colSums(coef_mat *
                        model_weights ,na.rm=T)
 
-  ave_coefs_non_int_or_ARMA<-ave_coefs[!names(ave_coefs)%in%c("intercept",paste0("ar",1:10),paste0("ma",1:10),paste0("sar",1:10),paste0("sma",1:10))]
+  ave_coefs_non_int_or_ARMA<-ave_coefs[!names(ave_coefs)%in%c("intercept",paste0("ar",1:10),paste0("ma",1:10),paste0("sar",1:10),paste0("sma",1:10),"drift")]
 
 
   covars<-salmonForecasting_dat[salmonForecasting_dat$year==max(salmonForecasting_dat$year),c("log_lag_jack",cov_vec[])]
