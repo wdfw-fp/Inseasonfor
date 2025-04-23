@@ -93,8 +93,8 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
     dat<-dplyr::bind_rows(local_data,new_dat)
 
 
-    write_file_path <- file.path("data-cache", "forecast_results.csv")
-    dir.create("data-cache", showWarnings = FALSE, recursive = TRUE)
+    write_file_path <- file.path(here::here("data-cache"), "forecast_results.csv")
+    dir.create(write_file_path, showWarnings = FALSE, recursive = TRUE)
     readr::write_csv(dat, write_file_path)
 
 
