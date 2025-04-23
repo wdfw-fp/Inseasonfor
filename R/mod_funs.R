@@ -26,100 +26,98 @@ mod_results<-function(forecastdate,
 
 file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
 
-  if (file.exists(file_path)) {
+  # if (file.exists(file_path)) {
     local_data <-
       readr::read_csv(file_path)
 
-    sdate <- max(local_data$date)+1
-    #
-  } else {
-    local_data<-NULL
-    sdate<-  as.Date(paste0(lubridate::year(forecastdate),"-04-05"))
-  }
+  #   sdate <- max(local_data$date)+1
+  #   #
+  # } else {
+  #   local_data<-NULL
+  #   sdate<-  as.Date(paste0(lubridate::year(forecastdate),"-04-05"))
+  # }
+  #
+  #
+  # if(sdate<=forecastdate){
+  #   new_dat<-data.frame()
+  #   for (i in seq.Date(from=sdate,to=forecastdate,by=1)){
+  #
+  #     forecast_year<-lubridate::year(as.Date(i))
+  #     forecast_month<-lubridate::month(as.Date(i))
+  #     forecast_mday<-lubridate::mday(as.Date(i))
+  #     forecast_season<-chk_season(as.Date(i))
+  #
+  #     fish_river_ocean_i<-cnts_for_mod_fun(as.Date(i),Bon_cnts=Count_dat) |>
+  #       dplyr::left_join(River_dat |>
+  #                          dplyr::filter(month==forecast_month,
+  #                                        md==forecast_mday) |>
+  #                          dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
+  #       ) |>
+  #       dplyr::left_join(
+  #         Ocean_dat
+  #       ) |>
+  #       dplyr::mutate(
+  #         cnt_by_flow= cfs_mean_ema*log_cum_cnt,
+  #         cnt_by_temp= temp_mean_ema *log_cum_cnt,
+  #       )
+  #
+  #
+  #     #ARIMA
+  #     ARIMA_for<-do_salmonForecasting_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
+  #     #
+  #     #   #DLM
+  #       DLM_for<-do_sibregresr_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
+  #     #Joint_like
+  #     joint_likelihood_fit<-fit_joint_likelihood(fish_river_ocean_i,forecast = forecast,forecast_log_sd = forecast_log_sd)
+  #
+  #     #combined
+  #     comb_for<-   dplyr::bind_rows(
+  #       DLM_for,
+  #     ARIMA_for,
+  #     joint_likelihood_fit
+  #     ) |>
+  #       dplyr::mutate(
+  #         date=as.Date(i),
+  #         dplyr::across(dplyr::where(is.numeric),\(x)round(x,3))
+  #       )
+  #
+  #     new_dat<-
+  #       dplyr::bind_rows(new_dat,
+  #                        comb_for
+  #                   )
+  #
+  #
+  # }
+  #
+  #
+  #   dat<-dplyr::bind_rows(local_data,new_dat)
+  #
+  #   file_path2 <- file.path("inst", "data-cache", "forecast_results.csv")
 
 
-  if(sdate<=forecastdate){
-    new_dat<-data.frame()
-    for (i in seq.Date(from=sdate,to=forecastdate,by=1)){
+    file_path3 <- tempfile(fileext = ".csv")
+    readr::write_csv(local_data, file_path3)
+    message("Wrote temp file to: ", file_path)
 
-      forecast_year<-lubridate::year(as.Date(i))
-      forecast_month<-lubridate::month(as.Date(i))
-      forecast_mday<-lubridate::mday(as.Date(i))
-      forecast_season<-chk_season(as.Date(i))
-
-      fish_river_ocean_i<-cnts_for_mod_fun(as.Date(i),Bon_cnts=Count_dat) |>
-        dplyr::left_join(River_dat |>
-                           dplyr::filter(month==forecast_month,
-                                         md==forecast_mday) |>
-                           dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
-        ) |>
-        dplyr::left_join(
-          Ocean_dat
-        ) |>
-        dplyr::mutate(
-          cnt_by_flow= cfs_mean_ema*log_cum_cnt,
-          cnt_by_temp= temp_mean_ema *log_cum_cnt,
-        )
-
-
-      #ARIMA
-      ARIMA_for<-do_salmonForecasting_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
-      #
-      #   #DLM
-        DLM_for<-do_sibregresr_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
-      #Joint_like
-      joint_likelihood_fit<-fit_joint_likelihood(fish_river_ocean_i,forecast = forecast,forecast_log_sd = forecast_log_sd)
-
-      #combined
-      comb_for<-   dplyr::bind_rows(
-        DLM_for,
-      ARIMA_for,
-      joint_likelihood_fit
-      ) |>
-        dplyr::mutate(
-          date=as.Date(i),
-          dplyr::across(dplyr::where(is.numeric),\(x)round(x,3))
-        )
-
-      new_dat<-
-        dplyr::bind_rows(new_dat,
-                         comb_for
-                    )
-
-
-  }
-
-
-    dat<-dplyr::bind_rows(local_data,new_dat)
-
-    file_path2 <- file.path("inst", "data-cache", "forecast_results.csv")
-
-
-    if (file.exists(file_path2)) {
-      message("File exists at: ", file_path2)
-      file.info(file_path2)
-      Sys.chmod(file_path2, mode = "0777", use_umask = TRUE)
-    }
-
-
+stop("we got there")
     # dir.create(dirname(file_path2), recursive = TRUE, showWarnings = FALSE)
     # Sys.chmod(dirname(file_path2), mode = "0777", use_umask = TRUE)
 
 
-    message("Writing forecast results to: ", file_path2)
-    tryCatch({
-      readr::write_csv(dat, file_path2)
-    }, error = function(e) {
-      message("Error writing file: ", e)
-      dir.create("data-cache", showWarnings = FALSE)
-      Sys.chmod("data-cache", mode = "0777", use_umask = TRUE)
-      stop(e) # Rethrow the error after handling
-    })
-
-    return(dat)
-}else{
-  return(local_data)
-}
+#     message("Writing forecast results to: ", file_path2)
+#     tryCatch({
+#       readr::write_csv(dat, file_path2)
+#     }, error = function(e) {
+#       message("Error writing file: ", e)
+#       dir.create("data-cache", showWarnings = FALSE)
+#       Sys.chmod("data-cache", mode = "0777", use_umask = TRUE)
+#       stop(e) # Rethrow the error after handling
+#     })
+#
+#     return(dat)
+# }else{
+#   return(local_data)
+# }
 
   }
 
