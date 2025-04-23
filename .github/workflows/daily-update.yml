@@ -115,7 +115,7 @@ jobs:
           git push origin main
 
 
-      - name: Final check: list committed CSV
+      - name: Final check list committed CSV
         run: git log -1 --stat
 
       # 13. Deploy to GitHub Pages
