@@ -94,7 +94,7 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
 
 
     write_file_path <- file.path(here::here("data-cache"), "forecast_results.csv")
-    dir.create(write_file_path, showWarnings = FALSE, recursive = TRUE)
+    dir.create(dirname(write_file_path), showWarnings = FALSE, recursive = TRUE)
     readr::write_csv(dat, write_file_path)
 
 
