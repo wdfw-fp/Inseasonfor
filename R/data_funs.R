@@ -1,6 +1,20 @@
 
 
 
+#' chk_season_print
+#'
+#' @param seasn
+#' @param season_dates
+#'
+#' @return
+#'
+#' @examples
+chk_season_print<-function(seasn,season_dates){
+ seas_row<- season_dates |> dplyr::filter(season==seasn)
+
+ paste0(seas_row$start_m," ",seas_row$start_md,"--",seas_row$end_m," ",seas_row$end_md)
+}
+
 #' Title
 #'
 #' @param day
@@ -23,6 +37,7 @@ chk_season<-function(day){
     )
   )
 }
+
 
 
 #' bon_dat_fun

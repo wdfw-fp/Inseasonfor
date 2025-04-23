@@ -23,6 +23,12 @@ if (params$use_dev_version) {
   # library(Inseasonfor)
 }
 
+season_dates<-data.frame(season=c("spring","summer"),
+                         start_m=c("Mar","Jun"),
+                         start_md=c(1,16),
+                         end_m=c("Jun","Jul"),
+                         end_md=c(15,31))
+
 
 
 #summer chinook forecast = 38,000, log_sd~ 0.33
@@ -107,11 +113,7 @@ highlight_row <- which(Bon_ch_year$CountDate == forecastdate)
 ## {.tabset}
 
 
-The cumulative adult Chinook passage at Bonneville Dam through `r forecastdate  |>  format("%B %d, %Y")` is **`r Bon_ch_day$total |> format(scientific=FALSE, big.mark=",")`**.
-
-<!-- The 5-year (`r paste0((forecast_year-5),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville through `r counts_through |>  format("%B %d")` is `r round((Bon_ch_day$Ave_5yr)*100,1)`%. Based on the cumulative counts to date and this proportion, the expected run size is `r format(round(Bon_ch_day$pred_Ave_5yr),scientific=FALSE, big.mark=",")` fish. -->
-
-The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the run that had passed Bonneville Dam through `r forecastdate  |>  format("%B %d")` is **`r round((Bon_ch_day$Ave_10yr)*100,1)`%**. Based on the cumulative counts to date and this proportion, the expected total dam count is `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` adult Chinook.
+The cumulative `r forecast_season` season adult Chinook passage at Bonneville Dam through `r forecastdate  |>  format("%B %d, %Y")` is **`r Bon_ch_day$total |> format(scientific=FALSE, big.mark=",")`**. The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the count that has occured at Bonneville Dam through `r forecastdate  |>  format("%B %d")` is **`r round((Bon_ch_day$Ave_10yr)*100,1)`%**. Based on the cumulative counts to date and this proportion, the expected total `r forecast_season` (`r chk_season_print("spring",season_dates)`) season dam count would be `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` adult Chinook.
 
 
 
@@ -175,7 +177,8 @@ model_results<-mod_results(forecastdate = forecastdate,
                            River_dat = flow_temp_dat,
                            Ocean_dat = ocean_cov,
                            forecast = ifelse(forecast_season=="spring",118078,36979),
-                           forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.3))
+                           forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.3),
+                           write_local=use_dev_version)
 ```
 
 

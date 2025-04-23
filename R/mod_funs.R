@@ -17,7 +17,8 @@ mod_results<-function(forecastdate,
                       River_dat = flow_temp_dat,
                       Ocean_dat = ocean_cov,
                       forecast=122500,
-                      forecast_log_sd=0.28){
+                      forecast_log_sd=0.28,
+                      write_local=FALSE){
 
 
   # if (is.null(mod_result_file)) {
@@ -92,10 +93,14 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
 
     dat<-dplyr::bind_rows(local_data,new_dat)
 
-
-    write_file_path <- file.path(here::here("data-cache"), "forecast_results.csv")
+if(write_local){
+  readr::write_csv(dat, file_path)
+}else{
+      write_file_path <- file.path(here::here("data-cache"), "forecast_results.csv")
     dir.create(dirname(write_file_path), showWarnings = FALSE, recursive = TRUE)
     readr::write_csv(dat, write_file_path)
+}
+
 
 
     return(dat)
