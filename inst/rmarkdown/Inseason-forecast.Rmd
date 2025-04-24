@@ -23,13 +23,13 @@ if (params$use_dev_version) {
   # library(Inseasonfor)
 }
 
+
+
 season_dates<-data.frame(season=c("spring","summer"),
                          start_m=c("Mar","Jun"),
                          start_md=c(1,16),
                          end_m=c("Jun","Jul"),
                          end_md=c(15,31))
-
-
 
 #summer chinook forecast = 38,000, log_sd~ 0.33
 #spring chinook forecast = 122500, log_sd~ 0.3
@@ -91,9 +91,11 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 # 
 # arima_F<-do_salmonForecasting_fun(data=fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
 # 
-#  JF_F<-fit_joint_likelihood(fish_river_ocean ,forecast = 180000,forecast_log_sd = .3)
+#  JF_F<-fit_joint_likelihood(fish_river_ocean ,forecast = 118078,forecast_log_sd = .3)
+#  JF_F2<-fit_joint_likelihood2(fish_river_ocean )
 # 
-#  dplyr::bind_rows(sib_R,arima_F,JF_F) |> View()
+# 
+#  dplyr::bind_rows(sib_R,arima_F,JF_F,JF_F2) |> View()
 
 ```
 
@@ -178,7 +180,7 @@ model_results<-mod_results(forecastdate = forecastdate,
                            Ocean_dat = ocean_cov,
                            forecast = ifelse(forecast_season=="spring",118078,36979),
                            forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.3),
-                           write_local=use_dev_version)
+                           write_local=params$use_dev_version)
 ```
 
 

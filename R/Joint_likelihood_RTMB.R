@@ -43,7 +43,8 @@ year_eff   = rep(0.05,length(mod_data$InseasonCount)),
 phi        = .5,
 tau_proc_err = -2,
 B1  = -.2,
-log_pred_sd = -.5 )
+log_pred_sd = -.5
+)
 
 }
 
@@ -64,7 +65,7 @@ log_pred_sd = -.5 )
 #'
 fit_joint_likelihood<-function(dat,forecast,forecast_log_sd){
 
-  RTMB_data<-make_joint_likelihood_dat(dat,forecast,forecast_log_sd)
+  RTMB_data<-make_joint_likelihood_dat(dat |> dplyr::filter(year>=2005),forecast,forecast_log_sd)
 
   RTMB_params<-make_joint_like_params_fun(RTMB_data)
 
@@ -129,8 +130,9 @@ Inseasonfor <- function(data_list) {
   nll <- nll - RTMB::dautoreg(year_eff,mu=0, phi=phi2, scale=tau_proc_err2,log=TRUE)
 
   ## Observation model
-  old_pred<-log(head(InseasonCount,-1)/head(p,-1))
-  current_pred<-log(tail(InseasonCount,1)/tail(p,1))
+  old_pred<-log((InseasonCount[1:(length(InseasonCount)-1)]/
+                   (p[1:(length(InseasonCount)-1)])))
+  current_pred<-log(InseasonCount[(length(InseasonCount))]/(p[(length(InseasonCount))]))
 
   #### previous years' total vs predictions
   pred_sd<- exp(log_pred_sd)

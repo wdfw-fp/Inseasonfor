@@ -60,8 +60,7 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
         dplyr::mutate(
           cnt_by_flow= cfs_mean_ema*log_cum_cnt,
           cnt_by_temp= temp_mean_ema *log_cum_cnt,
-        )
-
+        )|>   dplyr::filter(year<=forecast_year)
 
       #ARIMA
       ARIMA_for<-do_salmonForecasting_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
@@ -69,13 +68,15 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
       #   #DLM
         DLM_for<-do_sibregresr_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
       #Joint_like
-      joint_likelihood_fit<-fit_joint_likelihood(fish_river_ocean_i,forecast = forecast,forecast_log_sd = forecast_log_sd)
+      # joint_likelihood_fit1<-fit_joint_likelihood(fish_river_ocean_i,forecast = forecast,forecast_log_sd = forecast_log_sd)
+        joint_likelihood_fit2<-fit_joint_likelihood2(fish_river_ocean_i)
 
       #combined
       comb_for<-   dplyr::bind_rows(
         DLM_for,
       ARIMA_for,
-      joint_likelihood_fit
+      # joint_likelihood_fit1,
+      joint_likelihood_fit2
       ) |>
         dplyr::mutate(
           date=as.Date(i),
@@ -94,7 +95,7 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
     dat<-dplyr::bind_rows(local_data,new_dat)
 
 if(write_local){
-  readr::write_csv(dat, file_path)
+  readr::write_csv(dat, here::here("inst","data-cache","forecast_results.csv"))
 }else{
       write_file_path <- file.path(here::here("data-cache"), "forecast_results.csv")
     dir.create(dirname(write_file_path), showWarnings = FALSE, recursive = TRUE)
