@@ -34,3 +34,6 @@ Imports:
 Remotes: 
     wdfw-fp/sibregresr,
     wdfw-fp/salmonforecast
+Depends: 
+    R (>= 3.5)
+LazyData: true

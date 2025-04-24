@@ -5,3 +5,4 @@
 ^LICENSE\.md$
 ^data-cache$
 ^inst/scripts$
+^data-raw$
