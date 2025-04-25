@@ -5,8 +5,9 @@ on:
   workflow_dispatch: {}
   # Uncomment to schedule daily runs
   schedule:
-    - cron: '0 12 * * *'  # Daily at 5 AM Pacific / 12 PM UTC
-
+    - cron: '0 13 * * *'  # 6am Pacific
+    - cron: '0 14 * * *'  # 7am Pacific
+    - cron: '0 15 * * *'  # 8am Pacific
 permissions:
   contents: write
 

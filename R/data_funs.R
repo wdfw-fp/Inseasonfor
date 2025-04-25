@@ -83,7 +83,7 @@ bon_dat_fun<-function(pred_date=NULL,
   # }
 
   if(is.null(pred_date)){
-    edate<-Sys.Date()+1
+    edate<-Sys.Date()+2
   } else{
     edate<-pred_date
   }
