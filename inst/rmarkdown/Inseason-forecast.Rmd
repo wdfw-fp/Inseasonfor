@@ -178,10 +178,10 @@ flow_temp_dat  |>
 ```{r timing_plot, fig.cap= "Percent of the run complete by date, 1995--2024."}
 Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |> dplyr::mutate(date=(as.Date(paste(forecast_year,month,mday,sep="-")))) |>
   dplyr::filter(month>=4) |> 
-  ggplot2::ggplot(ggplot2::aes(x=date,y=prop))+ggplot2::geom_boxplot(ggplot2::aes(group = date))+ ggplot2::scale_x_date(
+  ggplot2::ggplot(ggplot2::aes(x=date,y=prop))+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1)+ggplot2::geom_boxplot(ggplot2::aes(group = date))+ ggplot2::scale_x_date(
     date_breaks = "1 month",
     date_labels = "%b"
-  )+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1)+ggplot2::ylab("Percent passage complete")+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
+  )+ggplot2::ylab("Percent passage complete")+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
 
 ```
 
@@ -189,7 +189,7 @@ Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |
 
 ```{r MAPE_10_year, fig.cap= "Mean absolute percent error  (over 15 year retrospectiv) of predictions based on cumulative counts and 10-year average run timing, by day of year."}
 Bon_ch_year |>
-  dplyr::filter(month>=4) |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr),x=CountDate))+ggplot2::geom_col(fill="white")+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1)+ggplot2::ylab("Mean absolute percent error (MAPE)") + ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))#+ ggplot2::geom_hline(ggplot2::aes(yintercept=30),lty=2)
+  dplyr::filter(month>=4) |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr),x=CountDate))+ggplot2::geom_col(fill="white")+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1,alpha=.5)+ggplot2::ylab("Mean absolute percent error (MAPE)") + ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))#+ ggplot2::geom_hline(ggplot2::aes(yintercept=30),lty=2)
 
 ```
 
