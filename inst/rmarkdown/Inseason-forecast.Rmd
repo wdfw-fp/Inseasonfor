@@ -473,5 +473,11 @@ htmltools::browsable(
 
 
 
+## Data sources
 
+Fish counts are accessed from the [Fish Passage Center](https://www.fpc.org) and riven environment data from the [US Army Corps of Engineers Northwest District ](https://www.nwd-wc.usace.army.mil/dd/common/dataquery/www/?k=bonneville)
+
+## Additional resources
+
+Columbia Basin Research produces their own prediction available [here](https://www.cbr.washington.edu/inseason/adult).
 
