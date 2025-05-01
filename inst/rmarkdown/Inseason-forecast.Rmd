@@ -373,7 +373,7 @@ This is an ensemble of ARIMA models  fit with the [`SalmonForecasting` package](
 
 #### Joint likelihood
 
-This is a version of a model that has been used for this purpose of in-season forecasting for several years. The proportion of the run that is complete on a given day is modeled with autoregressive (order 1) errors and an effect of the river discharge covariate. In this iteration, the pre-season forecast is fed in as a log-normal prior. The prediction interval is generated using the delta method. I have not yet implemented a retrospective assessment of performance because, in this version, the pre-season forecasts and prediction uncertainty need to be provided, and I have not pulled in the past 15 years' forecasts.
+This is a version of a model that has been used for this purpose of in-season forecasting for several years. The proportion of the run that is complete on a given day is modeled with autoregressive (order 1) errors and an effect of the river discharge covariate. The pre-season forecast is generated using an age-specific sibling regression.  I have not yet implemented a retrospective assessment of performance because, in this version, the pre-season forecasts and prediction uncertainty need to be provided, and I have not pulled in the past 15 years' forecasts.
 
 #### 10 year average run timing
 
