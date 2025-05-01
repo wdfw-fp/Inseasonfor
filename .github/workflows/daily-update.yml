@@ -118,7 +118,7 @@ jobs:
         run: |
           git config user.email "mark.sorel@dfw.wa.gov"
           git config user.name "marksorel8"
-          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/marksorel8/Inseasonfor.git
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/wdfw-fp/Inseasonfor.git
           git add inst/data-cache/*.csv || true
           git status
           git diff --cached --quiet || git commit -m "Update CSV files"
