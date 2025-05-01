@@ -76,13 +76,15 @@ if(nrow(bon_yr_seas)==0){
 flow_temp_dat<-data.frame()
 num_tries<-0
 while((nrow(flow_temp_dat)==0)&num_tries<6){
-flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = NULL) |> flow_ema_fun()
+flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = NULL) 
 num_tries<-num_tries+1
 
 if( num_tries==5 & (nrow(flow_temp_dat)==0) ){
   stop("Unable to get flow temp data from US Army Corps website")
 }
 }
+
+flow_temp_dat<-flow_temp_dat|> flow_ema_fun()
 
 #ocean cov data
 ocean_cov<-ocean_cov_fun(forecast_year) |> 
@@ -278,7 +280,9 @@ flow_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%
   gt::tab_footnote(footnote = "I have not yet implemented a retrospective assessment of performance for the joint-likelihood model",
                    locations = gt::cells_body(columns=MAPE,rows = 3)) |> 
     gt::tab_footnote(footnote = "Prediction intervals for different model types are calculated using different methods, so are not directly comparable. See Methods Description for more detail.",
-                   locations = gt::cells_column_labels(columns=`Lo 95`:`Hi 95`))
+                   locations = gt::cells_column_labels(columns=`Lo 95`:`Hi 95`))|>
+  gt::tab_caption(paste0("Predictions of the ",forecast_season, " season (", chk_season_print("spring",season_dates),") total adult Chinook salmon count with prediction intervals (50% and 95%) and the mean absolute percent error (MAPE) of predictions made with counts through ",forecastdate  |>  format("%B %d"), " in a 15-year retrospective assesment."))
+  
 
 
 
