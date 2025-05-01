@@ -1,6 +1,5 @@
 ---
 title: "Inseason Bonneville Dam Chinook salmon passage predictions"
-date: "`r Sys.Date()`"
 output:
   html_document: 
     toc: true
@@ -11,6 +10,20 @@ params:
   use_dev_version: true
     
 ---
+
+<script>
+   $(document).ready(function() {
+     $head = $('#header');
+     $head.prepend('<img src=\"https://privatelands.wdfw.wa.gov/wdfwlogo_clrnotxt.png"\" style=\"float: right;width: 150px;\"/>')
+   });
+</script>
+
+***
+
+Last updated `r format(Sys.time(), '%m/%d/%Y')`.
+
+***
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
