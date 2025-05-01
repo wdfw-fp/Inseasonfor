@@ -352,7 +352,7 @@ This is a version of a model that has been used for this purpose of in-season fo
 
 #### 10 year average run timing
 
-This method takes the 10-year average of the proporiton of the run that was complete on a given day and uses it to expand the cumulative counts to date. Performance and prediction intervals are based on a 15-year retrospective as described above for the DLM. 
+This method takes the 10-year average of the proportion of the run that was complete on a given day and uses it to expand the cumulative counts to date. Performance and prediction intervals are based on a 15-year retrospective as described above for the DLM but assuming a normal prediction distribution for the proportion complete in logit space. 
 
 
 ## Average timing info {.tabset}
