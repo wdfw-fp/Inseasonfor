@@ -315,9 +315,9 @@ flow_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%
 
 
 
-model_results2<- model_results2 |>
-  dplyr::mutate(across(c(`Hi 95`,`Hi 50`),\(x)ifelse(x>(2*predicted_abundance),NA,x)),
-                across(c(`Lo 95`,`Lo 50`),\(x)ifelse(x<(.5*predicted_abundance),NA,x)))
+# model_results2<- model_results2 |>
+#   dplyr::mutate(across(c(`Hi 95`,`Hi 50`),\(x)ifelse(x>(2*predicted_abundance),NA,x)),
+#                 across(c(`Lo 95`,`Lo 50`),\(x)ifelse(x<(.5*predicted_abundance),NA,x)))
 cb_palette <- c("#F0E442",
                     "#56B4E9",
                   "#009E73",
@@ -331,7 +331,12 @@ model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,colo
 ### Prediction interval plot
 
 
-```{r plot_pred_separate,fig.cap="Daily predictions and prediction intervals (95% and 50%).  Pridiction intervals that span >200% or <50% of the prediction are not shown. Prediction intervals for different model types are calculated using different methods, so are not directly comparable. See Methods Description for more details." }
+```{r plot_pred_separate,fig.cap="Daily predictions and prediction intervals (95% and 50%).  Prediction intervals for different model types are calculated using different methods, so may not be directly comparable. See Methods Description for more details." }
+
+
+ymax<-model_results2 |> dplyr::filter(date==forecastdate) |> dplyr::pull(predicted_abundance) |> max() |> (\(x) x * 2)()
+
+ymin<-model_results2 |> dplyr::filter(date==forecastdate) |> dplyr::pull(predicted_abundance) |> max() |> (\(x) x * .4)()
 
 model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+
   ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 95`,ymax=`Hi 95`),alpha=.65,fill="grey86",color=NA)+
@@ -340,7 +345,10 @@ model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,colo
   ggplot2::geom_point(size=2.5)+ggplot2::facet_wrap(~mod_type)+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="k",scale = 1e-3))+ ggplot2::scale_x_date(
     # date_breaks = "5 days",
     date_labels = "%b %d"
-  )+ggplot2::scale_color_manual(values = cb_palette) +ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18),legend.position = "none")+ggplot2::ylab("Predicted total dam count")
+  )+ggplot2::scale_color_manual(values = cb_palette) +ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18),legend.position = "none")+ggplot2::ylab("Predicted total dam count")+
+   ggplot2::coord_cartesian(ylim = c(ymin, ymax), clip = "on")
+
+
 
 ```
 
