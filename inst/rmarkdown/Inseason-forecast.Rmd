@@ -493,3 +493,4 @@ Fish counts are accessed from the [Fish Passage Center](https://www.fpc.org) and
 
 Columbia Basin Research produces their own prediction available [here](https://www.cbr.washington.edu/inseason/adult).
 
+Code used to generate predictions and render website is available [here](https://github.com/wdfw-fp/Inseasonfor)
