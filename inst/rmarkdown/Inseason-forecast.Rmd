@@ -279,7 +279,7 @@ flow_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%
   gt::sub_missing() |> 
   gt::tab_footnote(footnote = "I have not yet implemented a retrospective assessment of performance for the joint-likelihood model",
                    locations = gt::cells_body(columns=MAPE,rows = 3)) |> 
-    gt::tab_footnote(footnote = "Prediction intervals for different model types are calculated using different methods, so are not directly comparable. See Methods Description for more detail.",
+    gt::tab_footnote(footnote = "Prediction intervals for different model types are calculated using different methods, which complicates comparison somewhat. See Methods Description for more detail.",
                    locations = gt::cells_column_labels(columns=`Lo 95`:`Hi 95`))|>
   gt::tab_caption(paste0("Predictions of the ",forecast_season, " season (", chk_season_print("spring",season_dates),") total adult Chinook salmon count with prediction intervals (50% and 95%) and the mean absolute percent error (MAPE) of predictions made with counts through ",forecastdate  |>  format("%B %d"), " in a 15-year retrospective assesment."))
   
