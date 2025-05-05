@@ -175,7 +175,7 @@ flow_temp_dat  |>
 
 ### Percent complete
 
-```{r timing_plot, fig.cap= "Percent of the run complete by date, 1995--2024."}
+```{r timing_plot, fig.cap= "<strong>Percent of the run complete by date, 1995--2024.</strong> Lower and upper hinges correspond to the first and third quartiles (the 25th and 75th percentiles).The upper whisker extends from the hinge to the largest value no further than 1.5 * IQR from the hinge (where IQR is the inter-quartile range, or distance between the first and third quartiles). The lower whisker extends from the hinge to the smallest value at most 1.5 * IQR of the hinge. Data beyond the end of the whiskers are called &quot;outlying&quot; points and are plotted individually."}
 Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |> dplyr::mutate(date=(as.Date(paste(forecast_year,month,mday,sep="-")))) |>
   dplyr::filter(month>=4) |> 
   ggplot2::ggplot(ggplot2::aes(x=date,y=prop))+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1)+ggplot2::geom_boxplot(ggplot2::aes(group = date))+ ggplot2::scale_x_date(
@@ -184,6 +184,9 @@ Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |
   )+ggplot2::ylab("Percent passage complete")+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
 
 ```
+
+
+
 
 ### Prediction error
 
@@ -279,7 +282,7 @@ flow_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%
   gt::sub_missing() |> 
   gt::tab_footnote(footnote = "I have not yet implemented a retrospective assessment of performance for the joint-likelihood model",
                    locations = gt::cells_body(columns=MAPE,rows = 3)) |> 
-    gt::tab_footnote(footnote = "Prediction intervals for different model types are calculated using different methods, so are not directly comparable. See Methods Description for more detail.",
+    gt::tab_footnote(footnote = "Prediction intervals for different model types are calculated using different methods, which complicates comparison somewhat. See Methods Description for more detail.",
                    locations = gt::cells_column_labels(columns=`Lo 95`:`Hi 95`))|>
   gt::tab_caption(paste0("Predictions of the ",forecast_season, " season (", chk_season_print("spring",season_dates),") total adult Chinook salmon count with prediction intervals (50% and 95%) and the mean absolute percent error (MAPE) of predictions made with counts through ",forecastdate  |>  format("%B %d"), " in a 15-year retrospective assesment."))
   
