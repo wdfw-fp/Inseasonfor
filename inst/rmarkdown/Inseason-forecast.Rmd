@@ -496,4 +496,11 @@ Fish counts are accessed from the [Fish Passage Center](https://www.fpc.org) and
 
 Columbia Basin Research produces their own prediction available [here](https://www.cbr.washington.edu/inseason/adult).
 
+
+[This site](https://oscrpapps.shinyapps.io/TAC-Inseason-Preds-sh/) shows predictions based on a log-linear regression between end-of-season dam counts and 2 predictors: 1) the total jack dam counts from the previous year, and 2) the cumulative adult counts to date.
+
+Data from test fishing is available [here](https://wdfw.wa.gov/fishing/management/columbia-river/research/test-fishing)
+
+A plethora of information including pre-season forecasts and "fact sheets" with catch updates is available [here](https://wdfw.wa.gov/fishing/management/columbia-river/compact). Note that pre-season forecasts are generally of an index of abundance that includes the Bonneville Dam counts and harvest below Bonneville Dam, so a greater number than what is being predicted here.
+
 Code used to generate predictions and render website is available [here](https://github.com/wdfw-fp/Inseasonfor)
