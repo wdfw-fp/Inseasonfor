@@ -161,11 +161,11 @@ flow_temp_dat  |>
   ) |> 
   tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value")  |> 
   ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=Param,shape=Param))+ ggplot2::geom_point(size=2.5,show.legend=FALSE)+ggplot2::geom_line(show.legend=FALSE)+ggplot2::facet_wrap(~Param,ncol=1,scales="free_y")+
-  ggplot2::scale_color_manual(values=c("#E69F00","#56B4E9","#CC79A7"))+
+  ggplot2::scale_color_manual(values=rep(c("black"),3))+#c("#E69F00","#56B4E9","#CC79A7"))+
   ggplot2::labs(y="",
                 col=NULL,
                 shape=NULL)+
-  ggplot2::theme(legend.key=ggplot2::element_blank())+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
+  ggplot2::theme(legend.key=ggplot2::element_blank())+ggplot2::theme_grey()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
 
 
 ```
@@ -181,7 +181,7 @@ Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |
   ggplot2::ggplot(ggplot2::aes(x=date,y=prop))+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1)+ggplot2::geom_boxplot(ggplot2::aes(group = date))+ ggplot2::scale_x_date(
     date_breaks = "1 month",
     date_labels = "%b"
-  )+ggplot2::ylab("Percent passage complete")+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
+  )+ggplot2::ylab("Percent passage complete")+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_grey()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
 
 ```
 
@@ -192,7 +192,7 @@ Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |
 
 ```{r MAPE_10_year, fig.cap= "Mean absolute percent error  (over 15 year retrospectiv) of predictions based on cumulative counts and 10-year average run timing, by day of year."}
 Bon_ch_year |>
-  dplyr::filter(month>=4) |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr),x=CountDate))+ggplot2::geom_col(fill="white")+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1,alpha=.5)+ggplot2::ylab("Mean absolute percent error (MAPE)") + ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))#+ ggplot2::geom_hline(ggplot2::aes(yintercept=30),lty=2)
+  dplyr::filter(month>=4) |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr),x=CountDate))+ggplot2::geom_col(fill="grey10")+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1,alpha=.5)+ggplot2::ylab("Mean absolute percent error (MAPE)") + ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_grey()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))#+ ggplot2::geom_hline(ggplot2::aes(yintercept=30),lty=2)
 
 ```
 
@@ -308,11 +308,11 @@ Pred_tab
 ### Prediction plot
 
 ```{r plot_pred_together,fig.cap="Daily predictions of total counts at Bonneville from different models"}
-# cb_palette <- c("#000000",
-#                 "#E69F00",
-#                 "#56B4E9",
-#                 "#009E73")
-# 
+cb_palette <- c("#000000",
+                "#E69F00",
+                "#56B4E9",
+                "#009E73")
+# # 
 # cb_palette <- c("#88CCEE",
 #                      "#CC6677",
 #                      "#117733",
@@ -323,13 +323,13 @@ Pred_tab
 # model_results2<- model_results2 |>
 #   dplyr::mutate(across(c(`Hi 95`,`Hi 50`),\(x)ifelse(x>(2*predicted_abundance),NA,x)),
 #                 across(c(`Lo 95`,`Lo 50`),\(x)ifelse(x<(.5*predicted_abundance),NA,x)))
-cb_palette <- c("#F0E442",
-                    "#56B4E9",
-                  "#009E73",
-                     "#CC79A7")
+# cb_palette <- c("#F0E442",
+#                     "#56B4E9",
+#                   "#009E73",
+#                      "#CC79A7")
 
 
-model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+ggplot2::geom_line()+ggplot2::geom_point(size=2.5)+ggplot2::ylab("Predicted total dam count")+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="k",scale = 1e-3))+ggplot2::scale_color_manual(values = cb_palette) +ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18),legend.position = "top",legend.title = ggplot2::element_blank())
+model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+ggplot2::geom_line()+ggplot2::geom_point(size=2.5)+ggplot2::ylab("Predicted total dam count")+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="k",scale = 1e-3))+ggplot2::scale_color_manual(values = cb_palette) +ggplot2::theme_gray()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18),legend.position = "top",legend.title = ggplot2::element_blank())
 ```
 
 
@@ -344,13 +344,13 @@ ymax<-model_results2 |> dplyr::filter(date==forecastdate) |> dplyr::pull(predict
 ymin<-model_results2 |> dplyr::filter(date==forecastdate) |> dplyr::pull(predicted_abundance) |> max() |> (\(x) x * .4)()
 
 model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+
-  ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 95`,ymax=`Hi 95`),alpha=.65,fill="grey86",color=NA)+
-  ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 50`,ymax=`Hi 50`),alpha=.85,fill="seashell1",color=NA)+
+  ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 95`,ymax=`Hi 95`),alpha=.65,fill="grey40",color=NA)+
+  ggplot2::geom_ribbon(ggplot2::aes(ymin=`Lo 50`,ymax=`Hi 50`),alpha=.85,fill="grey20",color=NA)+
   ggplot2::geom_line()+
   ggplot2::geom_point(size=2.5)+ggplot2::facet_wrap(~mod_type)+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="k",scale = 1e-3))+ ggplot2::scale_x_date(
     # date_breaks = "5 days",
     date_labels = "%b %d"
-  )+ggplot2::scale_color_manual(values = cb_palette) +ggplot2::theme_dark()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18),legend.position = "none")+ggplot2::ylab("Predicted total dam count")+
+  )+ggplot2::scale_color_manual(values = cb_palette) +ggplot2::theme_grey()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18),legend.position = "none")+ggplot2::ylab("Predicted total dam count")+
    ggplot2::coord_cartesian(ylim = c(ymin, ymax), clip = "on")
 
 
