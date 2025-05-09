@@ -271,23 +271,27 @@ flow_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%
 ### Prediction table
 
 ```{r pred_table}
-# Pred_tab<-
+Pred_tab<-
   model_results2 |> dplyr::filter(date==forecastdate) |> dplyr::select(Model=mod_type,Pred =predicted_abundance,`Lo 95`:`Hi 95`,MAPE) |> 
 # dplyr::mutate(dplyr::across(dplyr::where(is.numeric),\(x)format(round(x),scientific=FALSE, big.mark=","))) |>  
   gt::gt() |> 
   gt::fmt_percent("MAPE",decimals=0,scale_values =FALSE) |> 
   gt::fmt_integer(Pred:`Hi 95`) |> 
   gt::sub_missing() |> 
-  gt::tab_footnote(footnote = "I have not yet implemented a retrospective assessment of performance for the joint-likelihood model",
-                   locations = gt::cells_body(columns=MAPE,rows = 3)) |> 
+  # gt::tab_footnote(footnote = "I have not yet implemented a retrospective assessment of performance for the joint-likelihood model",
+  #                  locations = gt::cells_body(columns=MAPE,rows = 3)) |> 
     gt::tab_footnote(footnote = "Prediction intervals for different model types are calculated using different methods, which complicates comparison somewhat. See Methods Description for more detail.",
                    locations = gt::cells_column_labels(columns=`Lo 95`:`Hi 95`))|>
   gt::tab_caption(paste0("Predictions of the ",forecast_season, " season (", chk_season_print("spring",season_dates),") total adult Chinook salmon count with prediction intervals (50% and 95%) and the mean absolute percent error (MAPE) of predictions made with counts through ",forecastdate  |>  format("%B %d"), " in a 15-year retrospective assesment."))
   
 
+if(!forecastdate %in%
+   as.Date(paste0(lubridate::year(forecastdate),c("-06-15","-07-31")))){
+Pred_tab<-Pred_tab |> gt::tab_footnote(footnote = "I have not yet implemented a retrospective assessment of performance for the joint-likelihood model",
+                   locations = gt::cells_body(columns=MAPE,rows = 3))
+  }
 
-
-
+Pred_tab
 # htmltools::browsable(
 #   Pred_tab #|>
 #     # kableExtra::kable_styling(bootstrap_options = c("striped", "hover")) |> 
