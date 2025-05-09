@@ -90,7 +90,7 @@ print(i)
         DLM_for<-do_sibregresr_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
       #Joint_like
       # joint_likelihood_fit1<-fit_joint_likelihood(fish_river_ocean_i,forecast = forecast,forecast_log_sd = forecast_log_sd)
-        joint_likelihood_fit2<-fit_joint_likelihood2(fish_river_ocean_i)
+        joint_likelihood_fit2<-fit_joint_likelihood2(fish_river_ocean_i,forecast_season)
 
       #combined
       comb_for<-   dplyr::bind_rows(

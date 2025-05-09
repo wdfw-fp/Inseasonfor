@@ -12,7 +12,7 @@
 #' @return
 #'
 #' @examples
-make_joint_likelihood_dat2<-function(dat){
+make_joint_likelihood_dat2<-function(dat,forecast_season){
 
 
 
@@ -20,6 +20,7 @@ make_joint_likelihood_dat2<-function(dat){
                              prop=cum_cnt/tot_adult
                              ) |>
     dplyr::left_join(agecomp |>
+                       dplyr::filter(Season==forecast_season) |>
                        dplyr::select(year=Year,pAge4=pAge.4)) |>
     dplyr::mutate(pAge4=ifelse(is.na(pAge4),mean(pAge4,na.rm=T),pAge4),
                   Age4=pAge4*tot_adult,
@@ -90,9 +91,9 @@ resid_err=0
 #'
 #' @examples
 #'
-fit_joint_likelihood2<-function(dat){
+fit_joint_likelihood2<-function(dat,forecast_season){
 
-  RTMB_data<-make_joint_likelihood_dat2(dat)
+  RTMB_data<-make_joint_likelihood_dat2(dat,forecast_season)
 
   RTMB_params<-make_joint_like_params_fun2(RTMB_data)
 
