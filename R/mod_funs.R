@@ -27,6 +27,10 @@ mod_results<-function(forecastdate,
 
 file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
 
+if(forecastdate %in%
+   as.Date(paste0(lubridate::year(forecastdate),c("-06-15","-07-31")))){
+  forecastdate<-forecastdate-1
+}
 
 forecast_season<-chk_season(forecastdate)
 
@@ -41,7 +45,7 @@ forecast_season<-chk_season(forecastdate)
                     year==lubridate::year(forecastdate))
 
     if(nrow(local_data2)==0){
-      sdate<-  as.Date(paste0(lubridate::year(forecastdate),ifelse(forecast_season=="spring","-04-05","-06-25")))
+      sdate<-  as.Date(paste0(lubridate::year(forecastdate),ifelse(forecast_season=="spring","-04-05","-06-16")))
     }else{
           sdate <- max(local_data2$date)+1
     }
@@ -51,7 +55,7 @@ forecast_season<-chk_season(forecastdate)
   } else {
     local_data<-NULL
 
-    sdate<-  as.Date(paste0(lubridate::year(forecastdate),ifelse(forecast_season=="spring","-04-05","-06-25")))
+    sdate<-  as.Date(paste0(lubridate::year(forecastdate),ifelse(forecast_season=="spring","-04-05","-06-16")))
   }
 
 

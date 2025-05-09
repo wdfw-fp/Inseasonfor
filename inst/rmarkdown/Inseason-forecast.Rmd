@@ -220,7 +220,7 @@ model_results2<-model_results |>
   dplyr::bind_rows(
     Bon_ch_year |> 
       dplyr::ungroup()|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,
-                                                                                                                           ifelse(forecast_season=="spring","-04-05","-06-25"))),
+                                                                                                                           ifelse(forecast_season=="spring","-04-05","-06-16"))),
                                                forecastdate)) |>
       dplyr::mutate(`Lo 95`=total/plogis(qnorm(.975,qlogis(Ave_10yr),logit_prop_sd_10yr)),
                     `Lo 50`=total/plogis(qnorm(.75,qlogis(Ave_10yr),logit_prop_sd_10yr)),
