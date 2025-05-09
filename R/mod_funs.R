@@ -27,15 +27,31 @@ mod_results<-function(forecastdate,
 
 file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
 
+
+forecast_season<-chk_season(forecastdate)
+
   if (file.exists(file_path)) {
     local_data <-
       readr::read_csv(file_path)
 
-    sdate <- max(local_data$date)+1
+    local_data2<- local_data |>
+      dplyr::mutate(season=chk_season(date),
+                    year=lubridate::year(date)) |>
+      dplyr::filter(season==forecast_season,
+                    year==lubridate::year(forecastdate))
+
+    if(nrow(local_data2)==0){
+      sdate<-  as.Date(paste0(lubridate::year(forecastdate),ifelse(forecast_season=="spring","-04-05","-06-25")))
+    }else{
+          sdate <- max(local_data2$date)+1
+    }
+
+
     #
   } else {
     local_data<-NULL
-    sdate<-  as.Date(paste0(lubridate::year(forecastdate),"-04-05"))
+
+    sdate<-  as.Date(paste0(lubridate::year(forecastdate),ifelse(forecast_season=="spring","-04-05","-06-25")))
   }
 
 
@@ -43,6 +59,7 @@ file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
     new_dat<-data.frame()
     for (i in seq.Date(from=sdate,to=forecastdate,by=1)){
 
+print(i)
       forecast_year<-lubridate::year(as.Date(i))
       forecast_month<-lubridate::month(as.Date(i))
       forecast_mday<-lubridate::mday(as.Date(i))
@@ -104,9 +121,9 @@ if(write_local){
 
 
 
-    return(dat)
+    return(dplyr::bind_rows(local_data2,new_dat))
 }else{
-  return(local_data)
+  return(local_data2)
 }
 
   }

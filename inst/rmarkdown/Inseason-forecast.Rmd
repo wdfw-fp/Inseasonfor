@@ -145,7 +145,7 @@ highlight_row <- which(Bon_ch_year$CountDate == forecastdate)
 ## {.tabset}
 
 
-The cumulative `r forecast_season` season adult Chinook passage at Bonneville Dam through `r forecastdate  |>  format("%B %d, %Y")` is **`r Bon_ch_day$total |> format(scientific=FALSE, big.mark=",")`**. The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the count that has occured at Bonneville Dam through `r forecastdate  |>  format("%B %d")` is **`r round((Bon_ch_day$Ave_10yr)*100,1)`%**. Based on the cumulative counts to date and this proportion, the expected total `r forecast_season` (`r chk_season_print("spring",season_dates)`) season dam count would be `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` (95% prediction interval = `r paste(daily_10_yr_intervals[c(1,5)],collapse=" -- ")` and 50% prediction interval = `r paste(daily_10_yr_intervals[c(2,4)],collapse=" -- ")`) adult Chinook.
+The cumulative `r forecast_season` season adult Chinook passage at Bonneville Dam through `r forecastdate  |>  format("%B %d, %Y")` is **`r Bon_ch_day$total |> format(scientific=FALSE, big.mark=",")`**. The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the count that has occured at Bonneville Dam through `r forecastdate  |>  format("%B %d")` is **`r round((Bon_ch_day$Ave_10yr)*100,1)`%**. Based on the cumulative counts to date and this proportion, the expected total `r forecast_season` (`r chk_season_print(forecast_season,season_dates)`) season dam count would be `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` (95% prediction interval = `r paste(daily_10_yr_intervals[c(1,5)],collapse=" -- ")` and 50% prediction interval = `r paste(daily_10_yr_intervals[c(2,4)],collapse=" -- ")`) adult Chinook.
 
 
 
@@ -210,10 +210,7 @@ Bon_ch_year |>
 model_results<-mod_results(forecastdate = forecastdate,
                            Count_dat = Bon_cnts,
                            River_dat = flow_temp_dat,
-                           Ocean_dat = ocean_cov,
-                           forecast = ifelse(forecast_season=="spring",118078,36979),
-                           forecast_log_sd = ifelse(forecast_season=="spring",0.3,0.3),
-                           write_local=params$use_dev_version)
+                           Ocean_dat = ocean_cov)
 ```
 
 
@@ -222,7 +219,8 @@ model_results<-mod_results(forecastdate = forecastdate,
 model_results2<-model_results |> 
   dplyr::bind_rows(
     Bon_ch_year |> 
-      dplyr::ungroup()|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,"-04-05")),
+      dplyr::ungroup()|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,
+                                                                                                                           ifelse(forecast_season=="spring","-04-05","-06-25"))),
                                                forecastdate)) |>
       dplyr::mutate(`Lo 95`=total/plogis(qnorm(.975,qlogis(Ave_10yr),logit_prop_sd_10yr)),
                     `Lo 50`=total/plogis(qnorm(.75,qlogis(Ave_10yr),logit_prop_sd_10yr)),
