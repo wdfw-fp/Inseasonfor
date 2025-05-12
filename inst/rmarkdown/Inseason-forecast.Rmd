@@ -8,22 +8,22 @@ output:
     theme: cosmo
 params:
   use_dev_version: true
-    
 ---
 
+```{=html}
 <script>
    $(document).ready(function() {
      $head = $('#header');
      $head.prepend('<img src=\"https://privatelands.wdfw.wa.gov/wdfwlogo_clrnotxt.png"\" style=\"float: right;width: 150px;\"/>')
    });
 </script>
+```
 
-***
+------------------------------------------------------------------------
 
 Last updated `r format(Sys.time(), '%m/%d/%Y')`.
 
-***
-
+------------------------------------------------------------------------
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
@@ -122,8 +122,6 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 
 ```
 
-
-
 ```{r  number_crunching}
 
 Bon_ch<-Bon_ch_fun(forecastdate,Bon_cnts)
@@ -142,12 +140,10 @@ plogis(qnorm(rev(c(.025,.25,.5,.75,.975)),qlogis(Bon_ch_day$Ave_10yr),Bon_ch_day
 highlight_row <- which(Bon_ch_year$CountDate == forecastdate)
 
 ```
-## {.tabset}
 
+##  {.tabset}
 
 The cumulative `r forecast_season` season adult Chinook passage at Bonneville Dam through `r forecastdate  |>  format("%B %d, %Y")` is **`r Bon_ch_day$total |> format(scientific=FALSE, big.mark=",")`**. The 10-year (`r paste0((forecast_year-10),"--",(forecast_year-1))` ) average proportion of the count that has occured at Bonneville Dam through `r forecastdate  |>  format("%B %d")` is **`r round((Bon_ch_day$Ave_10yr)*100,1)`%**. Based on the cumulative counts to date and this proportion, the expected total `r forecast_season` (`r chk_season_print(forecast_season,season_dates)`) season dam count would be `r format(round(Bon_ch_day$pred_Ave_10yr),scientific=FALSE, big.mark=",")` (95% prediction interval = `r paste(daily_10_yr_intervals[c(1,5)],collapse=" -- ")` and 50% prediction interval = `r paste(daily_10_yr_intervals[c(2,4)],collapse=" -- ")`) adult Chinook.
-
-
 
 ### Current year
 
@@ -170,9 +166,6 @@ flow_temp_dat  |>
 
 ```
 
-
-
-
 ### Percent complete
 
 ```{r timing_plot, fig.cap= "<strong>Percent of the run complete by date, 1995--2024.</strong> Lower and upper hinges correspond to the first and third quartiles (the 25th and 75th percentiles).The upper whisker extends from the hinge to the largest value no further than 1.5 * IQR from the hinge (where IQR is the inter-quartile range, or distance between the first and third quartiles). The lower whisker extends from the hinge to the smallest value at most 1.5 * IQR of the hinge. Data beyond the end of the whiskers are called &quot;outlying&quot; points and are plotted individually."}
@@ -185,9 +178,6 @@ Bon_ch |> dplyr::filter(dplyr::between(year,forecast_year-15,forecast_year-1)) |
 
 ```
 
-
-
-
 ### Prediction error
 
 ```{r MAPE_10_year, fig.cap= "Mean absolute percent error  (over 15 year retrospectiv) of predictions based on cumulative counts and 10-year average run timing, by day of year."}
@@ -195,8 +185,6 @@ Bon_ch_year |>
   dplyr::filter(month>=4) |> ggplot2::ggplot(ggplot2::aes(y = (MAPE_10yr),x=CountDate))+ggplot2::geom_col(fill="grey10")+ggplot2::geom_vline(ggplot2::aes(xintercept = forecastdate),col="firebrick",lty=2,lwd=1,alpha=.5)+ggplot2::ylab("Mean absolute percent error (MAPE)") + ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="%",scale = 100))+ggplot2::theme_grey()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))#+ ggplot2::geom_hline(ggplot2::aes(yintercept=30),lty=2)
 
 ```
-
-
 
 ## Model predictions {.tabset}
 
@@ -212,7 +200,6 @@ model_results<-mod_results(forecastdate = forecastdate,
                            River_dat = flow_temp_dat,
                            Ocean_dat = ocean_cov)
 ```
-
 
 ```{r modeling2,include=FALSE}
 # add 10 year timing to model resutls
@@ -231,7 +218,6 @@ model_results2<-model_results |>
       dplyr::select(mod_type,predicted_abundance=pred_Ave_10yr,`Lo 95`:`Hi 95`,MAPE=MAPE_10yr,date=CountDate)
   ) 
 ```
-
 
 ```{r covar_effects}
 
@@ -267,7 +253,6 @@ flow_effect_tab<-model_results2 |> dplyr::filter(date==forecastdate,mod_type%in%
 
 ```
 
-
 ### Prediction table
 
 ```{r pred_table}
@@ -302,9 +287,6 @@ Pred_tab
 
 ```
 
-
-
-
 ### Prediction plot
 
 ```{r plot_pred_together,fig.cap="Daily predictions of total counts at Bonneville from different models"}
@@ -332,9 +314,7 @@ cb_palette <- c("#000000",
 model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,color=mod_type))+ggplot2::geom_line()+ggplot2::geom_point(size=2.5)+ggplot2::ylab("Predicted total dam count")+ ggplot2::scale_y_continuous(labels = scales::unit_format(suffix="k",scale = 1e-3))+ggplot2::scale_color_manual(values = cb_palette) +ggplot2::theme_gray()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18),legend.position = "top",legend.title = ggplot2::element_blank())
 ```
 
-
 ### Prediction interval plot
-
 
 ```{r plot_pred_separate,fig.cap="Daily predictions and prediction intervals (95% and 50%).  Prediction intervals for different model types are calculated using different methods, so may not be directly comparable. See Methods Description for more details." }
 
@@ -357,7 +337,6 @@ model_results2 |> ggplot2::ggplot(ggplot2::aes(x=date,y=predicted_abundance,colo
 
 ```
 
-
 ### Covariate effects
 
 ```{r render_covar_tabs}
@@ -365,40 +344,36 @@ covar_effect_tab
 flow_effect_tab
 ```
 
-
-
 ### Methods description
-
 
 ##### DLM
 
 This is a penalized dynamic linear model fit with the [`Sibregresr` package](https://wdfw-fp.github.io/sibregresr/articles/Overview.html). The coefficients are the:
 
-1) log-transformed total count of jacks at Bonneville Dam in the *previous* year, 
-2) log-transformed cumulative adult count at Bonneville Dam in the *current* year,
-3) and interaction between an exponential moving average of river discharge and the cumulative adult count.
+1)  log-transformed total count of jacks at Bonneville Dam in the *previous* year,
+2)  log-transformed cumulative adult count at Bonneville Dam in the *current* year,
+3)  and interaction between an exponential moving average of river discharge and the cumulative adult count.
 
 The prediction interval is based on the standard deviation (in log-space) of forecasts from a 15-year retrospective. In other words, the root mean square error of the forecast error in log space from a 15-year retrospective is used as the standard deviation in a lognormal prediction interval.
 
 #### ARIMA
 
-This is an ensemble of ARIMA models  fit with the [`SalmonForecasting` package](https://github.com/wdfw-fp/salmonforecast) (see README at the linked page for details). The covariates are the same as those described above for the DLM. Prediction intervals are the weighted average of the prediction intervals provided by the `forecast::forecast()` function in `R`.
+This is an ensemble of ARIMA models fit with the [`SalmonForecasting` package](https://github.com/wdfw-fp/salmonforecast) (see README at the linked page for details). The covariates are the same as those described above for the DLM. Prediction intervals are the weighted average of the prediction intervals provided by the `forecast::forecast()` function in `R`.
 
 #### Joint likelihood
 
-This is a version of a model that has been used for this purpose of in-season forecasting for several years. The proportion of the run that is complete on a given day is modeled with autoregressive (order 1) errors and an effect of the river discharge covariate. The pre-season forecast is generated using an age-specific sibling regression.  I have not yet implemented a retrospective assessment of performance because, in this version, the pre-season forecasts and prediction uncertainty need to be provided, and I have not pulled in the past 15 years' forecasts.
+This is a version of a model that has been used for this purpose of in-season forecasting for several years. The proportion of the run that is complete on a given day is modeled with autoregressive (order 1) errors and an effect of the river discharge covariate. The pre-season forecast is generated using an age-specific sibling regression. I have not yet implemented a retrospective assessment of performance because, in this version, the pre-season forecasts and prediction uncertainty need to be provided, and I have not pulled in the past 15 years' forecasts.
 
 #### 10 year average run timing
 
-This method takes the 10-year average of the proportion of the run that was complete on a given day and uses it to expand the cumulative counts to date. Performance and prediction intervals are based on a 15-year retrospective as described above for the DLM but assuming a normal prediction distribution for the proportion complete in logit space. 
-
+This method takes the 10-year average of the proportion of the run that was complete on a given day and uses it to expand the cumulative counts to date. Performance and prediction intervals are based on a 15-year retrospective as described above for the DLM but assuming a normal prediction distribution for the proportion complete in logit space.
 
 ## Average timing info {.tabset}
-
 
 ### 10-year average
 
 #### Prediction
+
 ```{r 10_year_pred}
 
 pred10yr_tab<-Bon_ch_year|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,"-03-01")),
@@ -423,8 +398,6 @@ htmltools::browsable(
 
 ```
 
-
-
 #### Proportion complete
 
 ```{r 10_year_prop}
@@ -443,10 +416,6 @@ htmltools::browsable(
   kableExtra::scroll_box(height = "400px", width = "100%")
 )
 ```
-
-
-
-
 
 ### 5-year average
 
@@ -473,7 +442,6 @@ htmltools::browsable(
 )
 ```
 
-
 #### Proportion complete
 
 ```{r 5_year_prop}
@@ -493,21 +461,18 @@ htmltools::browsable(
 )
 ```
 
-
-
 ## Data sources
 
-Fish counts are accessed from the [Fish Passage Center](https://www.fpc.org) and river environment data from the [US Army Corps of Engineers Northwest District ](https://www.nwd-wc.usace.army.mil/dd/common/dataquery/www/?k=bonneville)
+Fish counts are accessed from the [Fish Passage Center](https://www.fpc.org) and river environment data from the [US Army Corps of Engineers Northwest District](https://www.nwd-wc.usace.army.mil/dd/common/dataquery/www/?k=bonneville)
 
 ## Additional resources
 
-Columbia Basin Research produces their own prediction available [here](https://www.cbr.washington.edu/inseason/adult).
+**Columbia Basin Research** produces their own prediction available [here](https://www.cbr.washington.edu/inseason/adult).
 
+[This site](https://oscrpapps.shinyapps.io/TAC-Inseason-Preds-sh/) shows predictions based on a **log-linear regression** between end-of-season dam counts and 2 predictors: 1) the total jack dam counts from the previous year, and 2) the cumulative adult counts to date.
 
-[This site](https://oscrpapps.shinyapps.io/TAC-Inseason-Preds-sh/) shows predictions based on a log-linear regression between end-of-season dam counts and 2 predictors: 1) the total jack dam counts from the previous year, and 2) the cumulative adult counts to date.
+Data from **test fishing** is available [here](https://wdfw.wa.gov/fishing/management/columbia-river/research/test-fishing)
 
-Data from test fishing is available [here](https://wdfw.wa.gov/fishing/management/columbia-river/research/test-fishing)
+A plethora of information including pre-season **forecasts and fact sheet** with catch updates is available [here](https://wdfw.wa.gov/fishing/management/columbia-river/compact). Note that pre-season forecasts are generally of an index of abundance that includes the Bonneville Dam counts and harvest below Bonneville Dam, so a greater number than what is being predicted here.
 
-A plethora of information including pre-season forecasts and "fact sheets" with catch updates is available [here](https://wdfw.wa.gov/fishing/management/columbia-river/compact). Note that pre-season forecasts are generally of an index of abundance that includes the Bonneville Dam counts and harvest below Bonneville Dam, so a greater number than what is being predicted here.
-
-Code used to generate predictions and render website is available [here](https://github.com/wdfw-fp/Inseasonfor)
+**Code** used to generate predictions and render website is available [here](https://github.com/wdfw-fp/Inseasonfor)
