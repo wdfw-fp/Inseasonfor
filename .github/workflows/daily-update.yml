@@ -4,9 +4,9 @@ name: Daily Update and Deployment
 on:
   workflow_dispatch: {}
   # Uncomment to schedule daily runs
-  schedule:
-    - cron: '0 14 * * *'  # 7am Pacific
-    - cron: '0 15 * * *'  # 8am Pacific
+  #schedule:
+   # - cron: '0 14 * * *'  # 7am Pacific
+   # - cron: '0 15 * * *'  # 8am Pacific
 permissions:
   contents: write
 
