@@ -467,9 +467,12 @@ Fish counts are accessed from the [Fish Passage Center](https://www.fpc.org) and
 
 ## Additional resources
 
-**Columbia Basin Research** produces their own prediction available [here](https://www.cbr.washington.edu/inseason/adult).
+**Columbia Basin Research** produces spring and fall Chinook run size predictions available [here](https://www.cbr.washington.edu/inseason/adult).
 
-[This site](https://oscrpapps.shinyapps.io/TAC-Inseason-Preds-sh/) shows predictions based on a **log-linear regression** between end-of-season dam counts and 2 predictors: 1) the total jack dam counts from the previous year, and 2) the cumulative adult counts to date.
+[This site](https://oscrpapps.shinyapps.io/TAC-Inseason-Preds-sh/) shows **spring Chinook run size predictions from ODFW** based on a log-linear regression between end-of-season dam counts and 2 predictors: 1) the total jack dam counts from the previous year, and 2) the cumulative adult counts to date.
+
+[This site](https://oscrpapps.shinyapps.io/tac-inseason-preds-sox/) shows **sockeye run size predictions from ODFW**.
+
 
 Data from **test fishing** is available [here](https://wdfw.wa.gov/fishing/management/columbia-river/research/test-fishing)
 
