@@ -86,6 +86,32 @@ if( num_tries==5 & (nrow(flow_temp_dat)==0) ){
 
 flow_temp_dat<-flow_temp_dat|> flow_ema_fun()
 
+
+avg_10yr <- flow_temp_dat |> 
+  dplyr::filter(Year < forecast_year & Year >= forecast_year - 10) |> 
+  dplyr::group_by(month,md) |> 
+  dplyr::summarise(
+    `Flow (kcfs)`= mean(cfs_USACoE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
+     `River temp. (F)`= mean(temp_f_USACE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
+    .groups="drop") |> 
+  dplyr::mutate(type="10yr ave.")
+
+current_yr<- flow_temp_dat |> 
+  dplyr::filter(Year == forecast_year ) |> 
+  dplyr::select(
+    `Flow (kcfs)`=cfs_USACoE,
+     `River temp. (F)`= temp_f_USACE,
+    flw_date,month,md) |> 
+  dplyr::mutate(type="Current yr")
+
+
+flow_temp_dat2<-
+  current_yr |> 
+  dplyr::bind_rows(avg_10yr)
+  
+
+
+
 #ocean cov data
 ocean_cov<-ocean_cov_fun(forecast_year) |> 
   dplyr::mutate(Year=Year+2) |> dplyr::select(year=Year,lag2_Spr_NPGO = Spr_NPGO, lag2_Spr_PDO = Spr_PDO, lag2_Sum_NPGO = Sum_NPGO, lag2_Sum_PDO = Sum_PDO)
@@ -128,6 +154,7 @@ Bon_ch<-Bon_ch_fun(forecastdate,Bon_cnts)
 
 Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)|>
   dplyr::filter(month>=3)
+
 Bon_ch_day<-Bon_ch_year |> dplyr::filter(CountDate==forecastdate)
 
 
@@ -148,20 +175,43 @@ The cumulative `r forecast_season` season adult Chinook passage at Bonneville Da
 ### Current year
 
 ```{r plot_cnts_env, fig.cap="Daily adult chinook salmon counts, flow, and temperature measurements taken at Bonneville Dam."}
-flow_temp_dat  |> 
-  dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_USACoE , `River temp. (F)`=temp_f_USACE) |> 
-  dplyr::mutate(Date=as.Date(Date),`Flow (kcfs)`=`Flow (kcfs)`/1000) |> 
+
+
+  
+
+# 
+# flow_temp_dat  |> 
+#   dplyr::group_by(month,md) |> 
+#   dplyr::summarise(
+#     ave_10yr_flow= mean(cfs_USACoE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
+#      ave_10yr_temp= mean(cfs_USACoE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
+#     `Flow (kcfs)`=cfs_USACoE[Year == forecast_year] ,
+#     `River temp. (F)`=cfs_USACoE[Year == forecast_year],
+#     
+#     .groups = "drop"
+#   ) |> View()
+#   
+#   dplyr::select(Date=flw_date ,`Flow (kcfs)`=cfs_USACoE , `River temp. (F)`=temp_f_USACE) |> 
+#   dplyr::mutate(Date=as.Date(Date),`Flow (kcfs)`=`Flow (kcfs)`/1000) |> 
+#   
+#   
+flow_temp_dat2 |>
+  dplyr::mutate(`Flow (kcfs)`=`Flow (kcfs)`/1000) |> 
   dplyr::inner_join(
-    bon_yr_seas |> 
-      dplyr::select(Date=CountDate,`Adult count`=AdultChinook)
+    Bon_ch_year |> 
+      dplyr::select(Date=CountDate,`Current yr`=AdultChinook,`10yr ave.` =Ave_10yr_daily_cnt,month,md=mday) |> 
+      tidyr::pivot_longer(c(`Current yr`,`10yr ave.`), names_to = "type",values_to = "Adult count")
   ) |> 
   tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value")  |> 
-  ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=Param,shape=Param))+ ggplot2::geom_point(size=2.5,show.legend=FALSE)+ggplot2::geom_line(show.legend=FALSE)+ggplot2::facet_wrap(~Param,ncol=1,scales="free_y")+
-  ggplot2::scale_color_manual(values=rep(c("black"),3))+#c("#E69F00","#56B4E9","#CC79A7"))+
+  ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=type))+ ggplot2::geom_point(size=2.5,show.legend=FALSE)+ggplot2::geom_line(show.legend=FALSE)+ggplot2::facet_wrap(~Param,ncol=1,scales="free_y")+
+  ggplot2::scale_color_manual(values=c("#E69F00","#56B4E9"))+#c("#E69F00","#56B4E9","#CC79A7"))+
   ggplot2::labs(y="",
                 col=NULL,
                 shape=NULL)+
   ggplot2::theme(legend.key=ggplot2::element_blank())+ggplot2::theme_grey()+ggplot2::theme(axis.title.x = ggplot2::element_blank(),text = ggplot2::element_text(size=18))
+
+
+
 
 
 ```
