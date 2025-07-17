@@ -5,13 +5,12 @@
 \title{fit three models and save results to csv.}
 \usage{
 mod_results(
-  forecastdate,
+  pred_date,
   Count_dat = Bon_cnts,
   River_dat = flow_temp_dat,
   Ocean_dat = ocean_cov,
-  forecast = 122500,
-  forecast_log_sd = 0.28,
-  mod_result_file = NULL
+  Bon_ch_year = Bon_ch_year,
+  write_local = FALSE
 )
 }
 \arguments{

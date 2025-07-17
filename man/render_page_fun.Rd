@@ -8,6 +8,7 @@ render_page_fun(
   output_file = "index.html",
   output_dir = "site",
   params = list(use_dev_version = FALSE),
+  exit_on_error = TRUE,
   ...
 )
 }

@@ -2,7 +2,7 @@
 
 #' fit three models and save results to csv.
 #'
-#' @param forecastdate
+#' @param pred_date
 #' @param dat
 #' @param forecast
 #' @param forecast_log_sd
@@ -12,12 +12,11 @@
 #' @export
 #'
 #' @examples
-mod_results<-function(forecastdate,
+mod_results<-function(pred_date,
                       Count_dat = Bon_cnts,
                       River_dat = flow_temp_dat,
                       Ocean_dat = ocean_cov,
-                      forecast=122500,
-                      forecast_log_sd=0.28,
+                      Bon_ch_year = Bon_ch_year,
                       write_local=FALSE){
 
 
@@ -27,12 +26,9 @@ mod_results<-function(forecastdate,
 
 file_path<-system.file("data-cache/forecast_results.csv",package="Inseasonfor")
 
-if(forecastdate %in%
-   as.Date(paste0(lubridate::year(forecastdate),c("-06-15","-07-31")))){
-  forecastdate<-forecastdate-1
-}
 
-forecast_season<-chk_season(forecastdate)
+
+forecast_season<-chk_season(pred_date)
 
   if (file.exists(file_path)) {
     local_data <-
@@ -42,10 +38,10 @@ forecast_season<-chk_season(forecastdate)
       dplyr::mutate(season=chk_season(date),
                     year=lubridate::year(date)) |>
       dplyr::filter(season==forecast_season,
-                    year==lubridate::year(forecastdate))
+                    year==lubridate::year(pred_date))
 
     if(nrow(local_data2)==0){
-      sdate<-  as.Date(paste0(lubridate::year(forecastdate),ifelse(forecast_season=="spring","-04-05","-06-16")))
+      sdate<-  as.Date(paste0(lubridate::year(pred_date),ifelse(forecast_season=="spring","-04-05","-06-16")))
     }else{
           sdate <- max(local_data2$date)+1
     }
@@ -55,13 +51,13 @@ forecast_season<-chk_season(forecastdate)
   } else {
     local_data<-NULL
 
-    sdate<-  as.Date(paste0(lubridate::year(forecastdate),ifelse(forecast_season=="spring","-04-05","-06-16")))
+    sdate<-  as.Date(paste0(lubridate::year(pred_date),ifelse(forecast_season=="spring","-04-05","-06-16")))
   }
 
 
-  if(sdate<=forecastdate){
+  if(sdate<=pred_date){
     new_dat<-data.frame()
-    for (i in seq.Date(from=sdate,to=forecastdate,by=1)){
+    for (i in seq.Date(from=sdate,to=pred_date,by=1)){
 
 print(i)
       forecast_year<-lubridate::year(as.Date(i))
@@ -82,6 +78,11 @@ print(i)
           cnt_by_flow= cfs_mean_ema*log_cum_cnt,
           cnt_by_temp= temp_mean_ema *log_cum_cnt,
         )|>   dplyr::filter(year<=forecast_year)
+
+
+      #don't try modeling the counts on the last day of season when we know what they are!
+      if(!pred_date %in%
+         as.Date(paste0(lubridate::year(pred_date),c("-06-15","-07-31","10-15")))){
 
       #ARIMA
       ARIMA_for<-do_salmonForecasting_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
@@ -108,7 +109,7 @@ print(i)
         dplyr::bind_rows(new_dat,
                          comb_for
                     )
-
+}
 
   }
 
@@ -125,9 +126,44 @@ if(write_local){
 
 
 
-    return(dplyr::bind_rows(local_data2,new_dat))
+    return(
+      dplyr::bind_rows(local_data2,new_dat) |>
+      # add 10 year timing to model resutls
+        dplyr::bind_rows(
+          Bon_ch_year |>
+            dplyr::ungroup()|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,
+                                                                                                                                 ifelse(forecast_season=="spring","-04-05","-06-16"))),
+                                                            pred_date)) |>
+            dplyr::mutate(`Lo 95`=total/plogis(qnorm(.975,qlogis(Ave_10yr),logit_prop_sd_10yr)),
+                          `Lo 50`=total/plogis(qnorm(.75,qlogis(Ave_10yr),logit_prop_sd_10yr)),
+                          `Hi 50`=total/plogis(qnorm(.25,qlogis(Ave_10yr),logit_prop_sd_10yr)),
+                          `Hi 95`=total/plogis(qnorm(.025,qlogis(Ave_10yr),logit_prop_sd_10yr)),
+                          mod_type="10-year\nave. timing",
+                          MAPE_10yr=MAPE_10yr*100) |>
+            dplyr::select(mod_type,predicted_abundance=pred_Ave_10yr,`Lo 95`:`Hi 95`,MAPE=MAPE_10yr,date=CountDate)
+
+           )
+    )
 }else{
-  return(local_data2)
+  return(
+    local_data2|>
+      # add 10 year timing to model resutls
+      dplyr::bind_rows(
+        Bon_ch_year |>
+          dplyr::ungroup()|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,
+                                                                                                                               ifelse(forecast_season=="spring","-04-05","-06-16"))),
+                                                          pred_date)) |>
+          dplyr::mutate(`Lo 95`=total/plogis(qnorm(.975,qlogis(Ave_10yr),logit_prop_sd_10yr)),
+                        `Lo 50`=total/plogis(qnorm(.75,qlogis(Ave_10yr),logit_prop_sd_10yr)),
+                        `Hi 50`=total/plogis(qnorm(.25,qlogis(Ave_10yr),logit_prop_sd_10yr)),
+                        `Hi 95`=total/plogis(qnorm(.025,qlogis(Ave_10yr),logit_prop_sd_10yr)),
+                        mod_type="10-year\nave. timing",
+                        MAPE_10yr=MAPE_10yr*100) |>
+          dplyr::select(mod_type,predicted_abundance=pred_Ave_10yr,`Lo 95`:`Hi 95`,MAPE=MAPE_10yr,date=CountDate)
+
+      )
+
+         )
 }
 
   }
