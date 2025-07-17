@@ -193,7 +193,7 @@ Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)|>
 
 
 
-cat("## ",season_i,"\n\n")
+cat("## ",season_i,ifelse(season_i==forecast_season,"{.active}",""),"\n\n")
 
 
 
