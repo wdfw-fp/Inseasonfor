@@ -91,7 +91,6 @@ jobs:
           git add inst/data-cache/*.csv || true
           git status
           git diff --cached --quiet || git commit -m "Update CSV files"
-          git push origin main
 
 
 
