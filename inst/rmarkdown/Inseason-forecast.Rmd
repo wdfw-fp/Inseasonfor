@@ -44,7 +44,7 @@ if (params$use_dev_version) {
 
 ```
 
-```{r data,cache=TRUE}
+```{r data}
 #fish data
 Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       count_file=NULL,
