@@ -99,9 +99,9 @@ fit_joint_likelihood2<-function(dat,forecast_season){
 
   RTMB_NLL<-Inseasonfor2(RTMB_data)
 
-  mod_obj<- RTMB::MakeADFun(RTMB_NLL,RTMB_params,random=c("alpha","year_eff"))#,"log_4_forecast","log_56_forecast"))
+  mod_obj<- RTMB::MakeADFun(RTMB_NLL,RTMB_params,random=c("alpha","year_eff"),silent=TRUE)#,"log_4_forecast","log_56_forecast"))
 
-  opt <- nlminb(mod_obj$par, mod_obj$fn, mod_obj$gr)
+  opt <- nlminb(mod_obj$par, mod_obj$fn, mod_obj$gr,trace=0)
 
   sdr <- RTMB::sdreport(mod_obj)
 

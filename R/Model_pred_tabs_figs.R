@@ -95,11 +95,14 @@ pred_tabs_fig<-function(pred_date,model_results,season_dates){
 
 mod_wrapper_fun<-function(pred_date,Bon_cnts,flow_temp_dat,ocean_cov,Bon_ch_year,season_dates,season_end_date){
 
-  model_results<-mod_results(pred_date  = pred_date,
+
+    captured_output2 <- capture.output({ # to capture printed statements and prevent them from going in the rendered output
+  model_results<-   mod_results(pred_date  = pred_date,
                              Count_dat = Bon_cnts,
                              River_dat = flow_temp_dat,
                              Ocean_dat = ocean_cov,
                              Bon_ch_year = Bon_ch_year)
+})
 
   mod_figs_tabs<-pred_tabs_fig(pred_date=pred_date,model_results,season_dates=season_dates)
 
@@ -115,14 +118,14 @@ mod_wrapper_fun<-function(pred_date,Bon_cnts,flow_temp_dat,ocean_cov,Bon_ch_year
 
   cat("#### Prediction plot","\n\n")
   print(mod_figs_tabs$pred_plot)
-
+  cat("\n\n")
   cat(paste("Daily predictions of total counts at Bonneville from different models."), "\n")
 
   cat("\n\n")
 
   cat("#### Prediction interval plot","\n\n")
   print(mod_figs_tabs$pred_int_plot)
-
+  cat("\n\n")
   cat(paste("Daily predictions and prediction intervals (95% and 50%).  Prediction intervals for different model types are calculated using different methods, so may not be directly comparable. See Methods Description for more details."), "\n")
   cat("\n\n")
 

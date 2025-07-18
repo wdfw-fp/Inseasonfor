@@ -286,8 +286,10 @@ do_salmonForecasting_fun<-function(data,cov_vec=c("log_cum_cnt","cnt_by_flow")){
 
 
 
-  ARIMA_forecast<-SalmonForecasting::do_forecast(salmonForecasting_dat,
+      ARIMA_forecast<-SalmonForecasting::do_forecast(salmonForecasting_dat,
                                                  covariates =c("log_lag_jack",cov_vec[]),max_vars=2,n_cores=3,do_stacking = FALSE,TY_ensemble=15,write_model_summaries=FALSE,include_mod = TRUE)
+
+
 
 
   best_weighting<-ARIMA_forecast$ens$forecast_skill |> dplyr::filter(grepl("w",model)) |> dplyr::filter(MAPE==min(MAPE)) |> dplyr::pull(model)

@@ -37,11 +37,6 @@ if (params$use_dev_version) {
 }
 
 
-
-
-#summer chinook forecast = 38,000, log_sd~ 0.33
-#spring chinook forecast = 122500, log_sd~ 0.3
-
 ```
 
 ```{r data}
@@ -154,7 +149,7 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 
 
 
-```{r, echo=FALSE, results='asis'}
+```{r plots_n_stuff, echo=FALSE, results='asis',warning=FALSE,message=FALSE}
 cat("# {.tabset}","\n\n")
 
 
@@ -180,7 +175,7 @@ for (season_i in c("spring","summer")){
   
   
   #if forecast date less than the season start date
-  ## leave date as is but do not run plotting functions, only blurb.
+  ## leave date as is but do not run plotting functions, only blurb. Another option would be to show last years' results in this case. 
   
   
  
@@ -200,7 +195,7 @@ cat("## ",season_i,ifelse(season_i==forecast_season,"{.active}",""),"\n\n")
 inital_blurb_fun(Bon_ch|> dplyr::filter(CountDate==forecastdate_i),
                  season_dates=season_dates)
 
-
+  
 cat("\n\n")
 
 if(forecastdate_i<=forecastdate){
@@ -208,7 +203,8 @@ if(forecastdate_i<=forecastdate){
 summary_plot_tabs(flow_temp_dat2,Bon_ch,forecastdate_i)
 
 
-mod_wrapper_fun(forecastdate_i,Bon_cnts,flow_temp_dat,ocean_cov,Bon_ch_year,season_dates=season_dates,season_end_date=seas_end)
+ mod_wrapper_fun(forecastdate_i,Bon_cnts,flow_temp_dat,ocean_cov,Bon_ch_year,season_dates=season_dates,season_end_date=seas_end)
+
 
 
 bon_ch_tabs(
