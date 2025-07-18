@@ -44,7 +44,9 @@ Bon_ch_fun<-function(pred_date=NULL,
     ) |>
     dplyr::group_by(.data$month,.data$mday) |>
     dplyr::mutate(Ave_5yr=dplyr::lag(zoo::rollapply(.data$prop,width=5,FUN=\(x)mean(x,na.rm=T),align="right",fill=NA_real_),1),
-                  Ave_10yr=dplyr::lag(zoo::rollapply(.data$prop,width=10,FUN=\(x)mean(x,na.rm=T),align="right",fill=NA_real_),1)) |>
+                  Ave_10yr=dplyr::lag(zoo::rollapply(.data$prop,width=10,FUN=\(x)mean(x,na.rm=T),align="right",fill=NA_real_),1),
+                  Ave_10yr_daily_cnt=dplyr::lag(zoo::rollapply(.data$AdultChinook,width=10,FUN=\(x)mean(x,na.rm=T),align="right",fill=NA_real_),1)
+                  ) |>
     dplyr::ungroup() |>
     dplyr::filter(year>=lubridate::year(pred_date)-30)
 
