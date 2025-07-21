@@ -42,7 +42,7 @@ chk_season<-function(day){
 
 #' bon_dat_fun
 #'
-#' Reads window count data from fish passage center.
+#' Reads window count data from fish passage center. Taken from Ben's fpcDamCounts package
 #'
 #' @param pred_date  the last date of counts for which predictions are to be based
 #' @param count_file the file where fish counts are stored
@@ -56,7 +56,7 @@ chk_season<-function(day){
 #' bon_dat_fun()
 #'
 bon_dat_fun<-function(pred_date=NULL,
-                      count_file=NULL,
+                      # count_file=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum"){
 
 
@@ -111,6 +111,9 @@ return(new_dat)
 #     return(local_data)
 #   }
 }
+
+
+
 
 
 

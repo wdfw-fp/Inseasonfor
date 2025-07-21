@@ -12,7 +12,7 @@ current_year_cnts_plot<-function(flow_temp_dat2,Bon_ch_year){
         tidyr::pivot_longer(c(`Current yr`,`10yr ave.`), names_to = "type",values_to = "Adult count")
     ) |>
     tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value")  |>
-    ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=type))+ ggplot2::geom_point(size=2.5)+ggplot2::geom_line()+ggplot2::facet_wrap(~Param,ncol=1,scales="free_y")+
+    ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=type))+ggplot2::geom_line()+ ggplot2::geom_point(size=2.5)+ggplot2::facet_wrap(~Param,ncol=1,scales="free_y")+
     ggplot2::scale_color_manual(values=c("#E69F00","#56B4E9"))+#c("#E69F00","#56B4E9","#CC79A7"))+
     ggplot2::labs(y="",
                   col=NULL,

@@ -42,7 +42,6 @@ if (params$use_dev_version) {
 ```{r data}
 #fish data
 Bon_cnts<-bon_dat_fun(pred_date=NULL,
-                      count_file=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
   dplyr::filter(month>=3)
 
@@ -60,12 +59,12 @@ forecast_md<-lubridate::mday(forecastdate)
                            end_md=c(15,31))
   
 
-bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
-
-
-if(nrow(bon_yr_seas)==0){
-  errorCondition("There are no counts for the season of interest")
-}
+# bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
+# 
+# 
+# if(nrow(bon_yr_seas)==0){
+#   errorCondition("There are no counts for the season of interest")
+# }
 
 # flow temp data
 flow_temp_dat<-data.frame()
@@ -105,42 +104,13 @@ flow_temp_dat2<-
   current_yr |> 
   dplyr::bind_rows(avg_10yr)
   
+# BDO for fall
+if(forecast_month>=8){
+  
 
+  
+}
 
-
-#ocean cov data
-ocean_cov<-ocean_cov_fun(forecast_year) |> 
-  dplyr::mutate(Year=Year+2) |> dplyr::select(year=Year,lag2_Spr_NPGO = Spr_NPGO, lag2_Spr_PDO = Spr_PDO, lag2_Sum_NPGO = Sum_NPGO, lag2_Sum_PDO = Sum_PDO)
-
-
-
-# #fish data combined with river and ocean covariates for modeling
-# fish_river_ocean<-cnts_for_mod_fun(forecastdate,Bon_cnts) |>
-#   dplyr::left_join(flow_temp_dat |>
-#                      dplyr::filter(
-#                        month==forecast_month,
-#                                    md==forecast_md) |>
-#                      dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
-#   ) |>
-#   dplyr::left_join(
-#     ocean_cov
-#   )|>
-#         dplyr::mutate(
-#           cnt_by_flow= cfs_mean_ema*log_cum_cnt,
-#           cnt_by_temp= temp_mean_ema *log_cum_cnt,
-#         ) |>   dplyr::filter(year<=forecast_year)
-# 
-# 
-# sib_R<-do_sibregresr_fun(fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
-# 
-# 
-# arima_F<-do_salmonForecasting_fun(data=fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
-# 
-#  JF_F<-fit_joint_likelihood(fish_river_ocean ,forecast = 118078,forecast_log_sd = .3)
-#  JF_F2<-fit_joint_likelihood2(fish_river_ocean )
-# 
-# 
-#  dplyr::bind_rows(sib_R,arima_F,JF_F,JF_F2) |> View()
 
 ```
 
@@ -179,11 +149,9 @@ for (season_i in c("spring","summer")){
   
   
  
-  
 
-Bon_ch<-Bon_ch_fun(forecastdate_i,Bon_cnts)
-Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)|>
-  dplyr::filter(month>=3)
+
+
 
 
 
@@ -191,29 +159,27 @@ Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)|>
 cat("## ",season_i,ifelse(season_i==forecast_season,"{.active}",""),"\n\n")
 
 
+render_tab<-function(pred_date=forecastdate_i,
+                     counts=,
+                     river_env=flow_temp_dat2,
+                     do_plots=(forecastdate_i>=seas_start),
+                     seas_dats,
+                     seas_end)
 
-inital_blurb_fun(Bon_ch|> dplyr::filter(CountDate==forecastdate_i),
-                 season_dates=season_dates)
+ if(forecastdate_i<=forecastdate){
+   
+if(season=="fall"){
+  
+
+} else { 
+  
+  
+ 
 
   
-cat("\n\n")
-
-if(forecastdate_i<=forecastdate){
-
-summary_plot_tabs(flow_temp_dat2,Bon_ch,forecastdate_i)
+}     
 
 
- mod_wrapper_fun(forecastdate_i,Bon_cnts,flow_temp_dat,ocean_cov,Bon_ch_year,season_dates=season_dates,season_end_date=seas_end)
-
-
-
-bon_ch_tabs(
-    Bon_ch_year,
-    forecast_year,
-    forecastdate_i
-)
-
-}
 }
 
 cat("# {-}","\n\n")

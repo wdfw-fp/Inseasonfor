@@ -15,7 +15,7 @@
 mod_results<-function(pred_date,
                       Count_dat = Bon_cnts,
                       River_dat = flow_temp_dat,
-                      Ocean_dat = ocean_cov,
+                      # Ocean_dat = ocean_cov,
                       Bon_ch_year = Bon_ch_year,
                       write_local=FALSE){
 
@@ -71,9 +71,9 @@ print(i)
                                          md==forecast_mday) |>
                            dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
         ) |>
-        dplyr::left_join(
-          Ocean_dat
-        ) |>
+        # dplyr::left_join(
+          # Ocean_dat
+        # ) |>
         dplyr::mutate(
           cnt_by_flow= cfs_mean_ema*log_cum_cnt,
           cnt_by_temp= temp_mean_ema *log_cum_cnt,
