@@ -83,21 +83,21 @@ bon_ch_tabs<-function(
   )
 
 
-  cat("### Average timing info {.tabset}","\n\n")
+  cat("##### Average timing info {.tabset}","\n\n")
 
-  cat("#### 10-year average","\n\n")
-  cat("##### Prediction","\n\n")
+  cat("###### 10-year average","\n\n")
+  cat("####### Prediction","\n\n")
   print(pred10yr_tab)
   cat("\n\n")
-  cat("##### Proportion complete","\n\n")
+  cat("####### Proportion complete","\n\n")
   print(prop10yr_tab)
   cat("\n\n")
 
-  cat("#### 5-year average","\n\n")
-  cat("##### Prediction","\n\n")
+  cat("###### 5-year average","\n\n")
+  cat("####### Prediction","\n\n")
   print(pred5yr_tab)
   cat("\n\n")
-  cat("##### Proportion complete","\n\n")
+  cat("####### Proportion complete","\n\n")
   print(prop5yr_tab)
   cat("\n\n")
 

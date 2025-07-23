@@ -97,9 +97,9 @@ Bon_ch_fun<-function(pred_date=NULL,
                   log_sd_5yr=dplyr::lag(zoo::rollapply(.data$log_er_5,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
                   ,
                   log_sd_10yr=dplyr::lag(zoo::rollapply(.data$log_er_10,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
-                  logit_prop_sd_5yr=dplyr::lag(zoo::rollapply(qlogis(.data$Ave_5yr),width=15,FUN=sd,align="right",fill=NA_real_),1),
+                  logit_prop_sd_5yr=dplyr::lag(zoo::rollapply(qlogis(pmin(.data$prop,.99)),width=5,FUN=sd,align="right",fill=NA_real_),1),
                   ,
-                  logit_prop_sd_10yr=dplyr::lag(zoo::rollapply(qlogis(.data$Ave_5yr),width=15,FUN=sd,align="right",fill=NA_real_),1)
+                  logit_prop_sd_10yr=dplyr::lag(zoo::rollapply(qlogis(pmin(.data$prop,.99)),width=10,FUN=sd,align="right",fill=NA_real_),1)
 
                   ) |>
   dplyr::arrange(desc(CountDate))

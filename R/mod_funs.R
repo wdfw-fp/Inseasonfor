@@ -1,5 +1,3 @@
-
-
 #' fit three models and save results to csv.
 #'
 #' @param pred_date
@@ -17,7 +15,8 @@ mod_results<-function(pred_date,
                       River_dat = flow_temp_dat,
                       # Ocean_dat = ocean_cov,
                       Bon_ch_year = Bon_ch_year,
-                      write_local=FALSE){
+                      write_local=FALSE,
+                      morph){
 
 
   # if (is.null(mod_result_file)) {
@@ -40,8 +39,14 @@ forecast_season<-chk_season(pred_date)
       dplyr::filter(season==forecast_season,
                     year==lubridate::year(pred_date))
 
+
+    if(morph!=""){
+      local_data2<-local_data2 |>
+        dplyr::filter(ecotype==morph&!is.na(ecotype))
+    }
+
     if(nrow(local_data2)==0){
-      sdate<-  as.Date(paste0(lubridate::year(pred_date),ifelse(forecast_season=="spring","-04-05","-06-16")))
+      sdate<-  as.Date(paste0(lubridate::year(pred_date),ifelse(forecast_season=="spring","-04-05",ifelse(forecast_season=="summer","-06-16","-08-15"))))
     }else{
           sdate <- max(local_data2$date)+1
     }
@@ -51,7 +56,8 @@ forecast_season<-chk_season(pred_date)
   } else {
     local_data<-NULL
 
-    sdate<-  as.Date(paste0(lubridate::year(pred_date),ifelse(forecast_season=="spring","-04-05","-06-16")))
+    sdate<-  as.Date(paste0(lubridate::year(pred_date),ifelse(forecast_season=="spring","-04-05",ifelse(forecast_season=="summer","-06-16","-08-15"))))
+
   }
 
 
@@ -81,28 +87,29 @@ print(i)
 
 
       #don't try modeling the counts on the last day of season when we know what they are!
-      if(!pred_date %in%
-         as.Date(paste0(lubridate::year(pred_date),c("-06-15","-07-31","10-15")))){
+      if(!i %in%
+         as.Date(paste0(lubridate::year(pred_date),c("-06-15","-07-31","11-15")))){
 
       #ARIMA
-      ARIMA_for<-do_salmonForecasting_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
+      # ARIMA_for<-do_salmonForecasting_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
       #
       #   #DLM
-        DLM_for<-do_sibregresr_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
+        # DLM_for<-do_sibregresr_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
       #Joint_like
       # joint_likelihood_fit1<-fit_joint_likelihood(fish_river_ocean_i,forecast = forecast,forecast_log_sd = forecast_log_sd)
-        joint_likelihood_fit2<-fit_joint_likelihood2(fish_river_ocean_i,forecast_season)
+        joint_likelihood_fit2<-fit_joint_likelihood2(fish_river_ocean_i ,ifelse(morph=="",forecast_season,morph))
 
       #combined
       comb_for<-   dplyr::bind_rows(
-        DLM_for,
-      ARIMA_for,
+        # DLM_for,
+      # ARIMA_for,
       # joint_likelihood_fit1,
       joint_likelihood_fit2
       ) |>
         dplyr::mutate(
           date=as.Date(i),
-          dplyr::across(dplyr::where(is.numeric),\(x)round(x,3))
+          dplyr::across(dplyr::where(is.numeric),\(x)round(x,3)),
+          ecotype=morph
         )
 
       new_dat<-
@@ -132,7 +139,7 @@ if(write_local){
         dplyr::bind_rows(
           Bon_ch_year |>
             dplyr::ungroup()|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,
-                                                                                                                                 ifelse(forecast_season=="spring","-04-05","-06-16"))),
+                                                                                                                                 ifelse(forecast_season=="spring","-04-05",ifelse(forecast_season=="summer","-06-16","-08-15")))),
                                                             pred_date)) |>
             dplyr::mutate(`Lo 95`=total/plogis(qnorm(.975,qlogis(Ave_10yr),logit_prop_sd_10yr)),
                           `Lo 50`=total/plogis(qnorm(.75,qlogis(Ave_10yr),logit_prop_sd_10yr)),
@@ -151,7 +158,7 @@ if(write_local){
       dplyr::bind_rows(
         Bon_ch_year |>
           dplyr::ungroup()|> dplyr::filter(dplyr::between(CountDate,                                            as.Date(paste0(forecast_year,
-                                                                                                                               ifelse(forecast_season=="spring","-04-05","-06-16"))),
+                                                                                                                               ifelse(forecast_season=="spring","-04-05",ifelse(forecast_season=="summer","-06-16","-08-15")))),
                                                           pred_date)) |>
           dplyr::mutate(`Lo 95`=total/plogis(qnorm(.975,qlogis(Ave_10yr),logit_prop_sd_10yr)),
                         `Lo 50`=total/plogis(qnorm(.75,qlogis(Ave_10yr),logit_prop_sd_10yr)),
