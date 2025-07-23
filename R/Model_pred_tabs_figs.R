@@ -83,8 +83,8 @@ pred_tabs_fig<-function(pred_date,model_results,season_dates){
 
 
   list(
-    covar_effect_tab =  covar_effect_tab,
-    flow_effect_tab =  flow_effect_tab,
+    # covar_effect_tab =  covar_effect_tab,
+    # flow_effect_tab =  flow_effect_tab,
     Pred_tab =  Pred_tab,
     pred_plot = pred_plot,
     pred_int_plot = pred_int_plot

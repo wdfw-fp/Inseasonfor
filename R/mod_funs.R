@@ -18,7 +18,6 @@ mod_results<-function(pred_date,
                       write_local=FALSE,
                       morph){
 
-
   # if (is.null(mod_result_file)) {
   #   mod_result_file <- get_default_model_result_path()
   # }
@@ -55,6 +54,7 @@ forecast_season<-chk_season(pred_date)
     #
   } else {
     local_data<-NULL
+    local_data2<-data.frame(ecotype=character(0))
 
     sdate<-  as.Date(paste0(lubridate::year(pred_date),ifelse(forecast_season=="spring","-04-05",ifelse(forecast_season=="summer","-06-16","-08-15"))))
 
@@ -86,30 +86,33 @@ print(i)
         )|>   dplyr::filter(year<=forecast_year)
 
 
-      #don't try modeling the counts on the last day of season when we know what they are!
-      if(!i %in%
-         as.Date(paste0(lubridate::year(pred_date),c("-06-15","-07-31","11-15")))){
+      #don't try modeling the counts on the last day of season when we know what they are! or late in the fall season when runs are pretty uch comples
+      if((!as.Date(i) %in%
+         as.Date(paste0(lubridate::year(pred_date),c("-06-15","-07-31"))))|
+         (morph=="Tule"&(as.Date(i)>paste0(lubridate::year(pred_date),"-09-25")))|
+         (morph=="BRight"&(as.Date(i)>paste0(lubridate::year(pred_date),"-10-15")))
+         ){
 
       #ARIMA
-      # ARIMA_for<-do_salmonForecasting_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
+      ARIMA_for<-do_salmonForecasting_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
       #
       #   #DLM
-        # DLM_for<-do_sibregresr_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
+        DLM_for<-do_sibregresr_fun(fish_river_ocean_i,cov_vec=c("log_cum_cnt","cnt_by_flow"))
       #Joint_like
       # joint_likelihood_fit1<-fit_joint_likelihood(fish_river_ocean_i,forecast = forecast,forecast_log_sd = forecast_log_sd)
         joint_likelihood_fit2<-fit_joint_likelihood2(fish_river_ocean_i ,ifelse(morph=="",forecast_season,morph))
 
       #combined
       comb_for<-   dplyr::bind_rows(
-        # DLM_for,
-      # ARIMA_for,
+        DLM_for,
+      ARIMA_for,
       # joint_likelihood_fit1,
       joint_likelihood_fit2
       ) |>
         dplyr::mutate(
           date=as.Date(i),
           dplyr::across(dplyr::where(is.numeric),\(x)round(x,3)),
-          ecotype=morph
+          ecotype=ifelse(forecast_season!="fall",forecast_season,morph)
         )
 
       new_dat<-

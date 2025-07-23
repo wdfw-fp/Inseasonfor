@@ -61,15 +61,13 @@ n_year<-length(mod_data$logjCK)
   list(
 mu = mean(mod_data$obslogitp),
 beta=rep(.1,3),
-log_sd_beta=rep(0,3),
-alpha=rep(mean(mod_data$logCK4),n_year),
+alpha=rep(10,n_year),
 tau_alpha=0,
-alpha2=mean(mod_data$logCK5_6),
+alpha2=10,
 year_eff=rep(.1,n_year),
 phi=0,
 tau_proc_err=0,
 B1=0,
-log_sd_B1=0,
 # tau_logCK4=0,
 # tau_logCK5_6=0,
 # log_4_forecast=12,
@@ -102,22 +100,12 @@ fit_joint_likelihood2<-function(dat,forecast_season){
 
   RTMB_NLL<-Inseasonfor2(RTMB_data)
 
-  mod_obj<- RTMB::MakeADFun(RTMB_NLL,RTMB_params,random=c("alpha","year_eff","beta","B1"),silent=TRUE)#,"log_4_forecast","log_56_forecast"))
+  mod_obj<- RTMB::MakeADFun(RTMB_NLL,RTMB_params,random=c("alpha","year_eff"),silent=TRUE)#,"log_4_forecast","log_56_forecast"))
 
   opt <- nlminb(mod_obj$par, mod_obj$fn, mod_obj$gr,trace=0)
 
-  opt <- nlminb(opt$par, mod_obj$fn, mod_obj$gr,trace=0)
-
-  g = as.numeric( mod_obj$gr(opt$par) )
-  h = optimHess(opt$par, fn=mod_obj$fn, gr=mod_obj$gr)
-  opt$par = opt$par - solve(h, g)
-  opt$objective = mod_obj$fn(opt$par)
-
-
-
   sdr <- RTMB::sdreport(mod_obj)
 
-  mod_obj$env$parList(par=mod_obj$env$last.par.best)
   adrep_est<-as.list(sdr, "Est", report=TRUE)
   adrep_sd<-as.list(sdr, "Std", report=TRUE)
 
@@ -186,14 +174,14 @@ Inseasonfor2 <- function(data_list) {
                     nll <- nll-  RTMB::dnorm(alpha[i]-alpha[i-1],0 ,
                                  sd_alpha,log=TRUE)
                   }
-    nll <- nll - (RTMB::dexp(sd_alpha,1,log=TRUE)+(tau_alpha))
+    nll <- nll - (RTMB::dexp(sd_alpha,1,log=TRUE))#+(tau_alpha))
 
   ## AR(1) year effect on proportion complete
   phi2 <- 2 / (1 + exp(-phi)) - 1
   tau_proc_err2 <- exp(tau_proc_err)
   nll <- nll - RTMB::dautoreg(year_eff,mu=0, phi=phi2, scale=tau_proc_err2,log=TRUE)
 
-  nll <- nll - (RTMB::dexp(tau_proc_err2,1,log=TRUE)+(tau_proc_err))
+  nll <- nll - (RTMB::dexp(tau_proc_err2,1,log=TRUE))
 
   pred<-InseasonCount/p
 
@@ -209,23 +197,7 @@ Inseasonfor2 <- function(data_list) {
 
 
   ## Observation model
-  nll <- nll - sum(RTMB::dnorm(beta,
-                               0 ,
-                               exp(log_sd_beta),log=TRUE))-
-    sum(RTMB::dexp(exp(log_sd_beta),1,log=TRUE)+(log_sd_beta))
-
-
-
-
-  nll <- nll - sum(RTMB::dnorm(B1,
-                               0 ,
-                               exp(log_sd_B1),log=TRUE))-
-    (RTMB::dexp(exp(log_sd_B1),1,log=TRUE)+(log_sd_B1))
-
-
-
-
-  nll <- nll - (RTMB::dexp(exp(resid_err),1,log=TRUE)+(resid_err))
+  nll <- nll - (RTMB::dexp(exp(resid_err),1,log=TRUE))#+(resid_err))
 
 
   #### preseason foreacst model
@@ -284,7 +256,6 @@ Inseasonfor2 <- function(data_list) {
   # RTMB::ADREPORT(logitp);
   RTMB::ADREPORT(pre_season_forecast);
   # RTMB::ADREPORT(log(forecast));
-  RTMB::ADREPORT(beta);
   RTMB::ADREPORT(B1);
   # RTMB::ADREPORT(phi2);
   RTMB::ADREPORT(p);
