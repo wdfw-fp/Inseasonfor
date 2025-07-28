@@ -7,15 +7,15 @@ BDO_dat<-function(use_DWG=TRUE){
       BDO_raw<-readr::read_csv( "https://data.wa.gov/resource/w52y-hhyj.csv?$limit=50000") |>
         dplyr::mutate(count_date =as.Date(count_date))
   }else{
-      bdo_con <- DBI::dbConnect(
-    RPostgres::Postgres(),
-    dbname = Sys.getenv("dbname"),
-    host = Sys.getenv("host"),
-    port = as.integer(Sys.getenv("port")),
-    user = Sys.getenv("user"),
-    password = Sys.getenv("password")
-  )
-  BDO_raw<-DBI::dbGetQuery(bdo_con, 'SELECT * FROM "bdo"."raw_data"')
+  #     bdo_con <- DBI::dbConnect(
+  #   RPostgres::Postgres(),
+  #   dbname = Sys.getenv("dbname"),
+  #   host = Sys.getenv("host"),
+  #   port = as.integer(Sys.getenv("port")),
+  #   user = Sys.getenv("user"),
+  #   password = Sys.getenv("password")
+  # )
+  # BDO_raw<-DBI::dbGetQuery(bdo_con, 'SELECT * FROM "bdo"."raw_data"')
   }
 
 
