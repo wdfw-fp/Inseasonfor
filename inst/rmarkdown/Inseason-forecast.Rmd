@@ -45,7 +45,7 @@ Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
   dplyr::filter(month>=3)
 
-forecastdate <- as.Date("2024-09-01")#Bon_cnts |> dplyr::pull(CountDate) |>  max()#
+forecastdate <- as.Date("2024-10-16")#Bon_cnts |> dplyr::pull(CountDate) |>  max()#
 forecast_season<-chk_season(forecastdate)
 forecast_year<-lubridate::year(forecastdate)
 forecast_month<-lubridate::month(forecastdate)
@@ -55,8 +55,8 @@ forecast_md<-lubridate::mday(forecastdate)
 season_dates<-data.frame(season=c("spring","summer","fall"),
                          start_m=c("Mar","Jun","Aug"),
                          start_md=c(1,16,1),
-                         end_m=c("Jun","Jul","Nov"),
-                         end_md=c(15,31,15))
+                         end_m=c("Jun","Jul","Dec"),
+                         end_md=c(15,31,31))
 
 
 # bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
@@ -105,7 +105,8 @@ flow_temp_dat2<-
   dplyr::bind_rows(avg_10yr)
 
 # BDO for fall
-if(forecast_month>=8){
+if(forecast_month>8|
+   (forecast_month==8&forecast_md>=15)){
   
   Fall_split_cnts<-tule_bright_split(forecastdate)
   

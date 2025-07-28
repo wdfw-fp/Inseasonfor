@@ -86,11 +86,12 @@ print(i)
         )|>   dplyr::filter(year<=forecast_year)
 
 
-      #don't try modeling the counts on the last day of season when we know what they are! or late in the fall season when runs are pretty uch comples
-      if((!as.Date(i) %in%
-         as.Date(paste0(lubridate::year(pred_date),c("-06-15","-07-31"))))|
-         (morph=="Tule"&(as.Date(i)>paste0(lubridate::year(pred_date),"-09-25")))|
-         (morph=="BRight"&(as.Date(i)>paste0(lubridate::year(pred_date),"-10-15")))
+      #don't try modeling the counts on the last day of season when we know what they are! or late in the fall season when runs are pretty much comples
+      if(!
+        (((as.Date(i) %in%
+         as.Date(paste0(lubridate::year(pred_date),c("-06-15","-07-31")))))|
+         (morph=="Tule"&(as.Date(i)>as.Date(paste0(lubridate::year(pred_date),"-09-25"))))|
+         (morph=="Bright"&(as.Date(i)>as.Date(paste0(lubridate::year(pred_date),"-10-15")))))
          ){
 
       #ARIMA

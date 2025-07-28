@@ -83,8 +83,8 @@ pred_tabs_fig<-function(pred_date,model_results,season_dates){
 
 
   list(
-    # covar_effect_tab =  covar_effect_tab,
-    # flow_effect_tab =  flow_effect_tab,
+    covar_effect_tab =  covar_effect_tab,
+    flow_effect_tab =  flow_effect_tab,
     Pred_tab =  Pred_tab,
     pred_plot = pred_plot,
     pred_int_plot = pred_int_plot
@@ -134,7 +134,9 @@ mod_wrapper_fun<-function(pred_date,Bon_cnts,flow_temp_dat,#ocean_cov,
   cat(paste("Daily predictions and prediction intervals (95% and 50%).  Prediction intervals for different model types are calculated using different methods, so may not be directly comparable. See Methods Description for more details."), "\n")
   cat("\n\n")
 
-  if(pred_date<season_end_date){
+  if(pred_date<season_end_date&
+     (!((morph=="Tule"&(as.Date(pred_date)>as.Date(paste0(lubridate::year(pred_date),"-09-25"))))|
+          (morph=="Bright"&(as.Date(pred_date)>as.Date(paste0(lubridate::year(pred_date),"-10-15"))))))){
   cat("###### Covariate effects","\n\n")
   print(mod_figs_tabs$covar_effect_tab)
   cat("\n\n")

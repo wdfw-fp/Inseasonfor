@@ -6,6 +6,10 @@ render_tab<-function(pred_date,counts,river_env,do_plots,seas_dats,seas_end,writ
     counts2 <-counts  |>
       dplyr::rename(AdultChinook=paste(morph,"Adult",sep="_"),
                     JackChinook=paste(morph,"Jack",sep="_"))
+if(morph=="Tule"){
+  counts2 <-counts2  |>
+    dplyr::mutate(JackChinook=JackChinook+Tule_Stubby )
+}
 
   }else{
     counts2 <-counts
