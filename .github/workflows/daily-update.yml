@@ -85,7 +85,7 @@ jobs:
 
 
       # 9. Commit updated CSVs (if changed)
-      - name: Commit updated CSV files (verbose)
+      - name: Commit and push updated CSV files
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
@@ -93,10 +93,8 @@ jobs:
           git config user.name "marksorel8"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/wdfw-fp/Inseasonfor.git
           git add inst/data-cache/*.csv || true
-          git status
           git diff --cached --quiet || git commit -m "Update CSV files"
-
-
+          git push origin main
 
       # 10. Deploy the html from the rendered Rmarkdown to GitHub Pages
       - name: Deploy to GitHub Pages
