@@ -86,6 +86,9 @@ Bon_ch_fun<-function(pred_date=NULL,
                   er_10 =obs_tot-pred_Ave_10yr,
                   log_er_5= log(obs_tot/pred_Ave_5yr),
                   log_er_10 =log(obs_tot/pred_Ave_10yr),
+                  logit_prop=qlogis(prop),
+                  logit_prop5yr_er=logit_prop-qlogis(Ave_5yr),
+                  logit_prop10yr_er=logit_prop-qlogis(Ave_10yr),
                   APE_5=abs(er_5)/obs_tot,
                   APE_10=abs(er_10)/obs_tot
     ) |>
@@ -94,12 +97,15 @@ Bon_ch_fun<-function(pred_date=NULL,
     dplyr::group_by(month ,mday) |>
     dplyr::mutate(MAPE_5yr=dplyr::lag(zoo::rollmean(.data$APE_5,k=15,align="right",fill=NA_real_),1),
                   MAPE_10yr=dplyr::lag(zoo::rollmean(.data$APE_10,k=15,align="right",fill=NA_real_),1),
-                  log_sd_5yr=dplyr::lag(zoo::rollapply(.data$log_er_5,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
+                  # log_sd_5yr=dplyr::lag(zoo::rollapply(.data$log_er_5,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
+                  # ,
+                  # log_sd_10yr=dplyr::lag(zoo::rollapply(.data$log_er_10,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
+                  logit_prop_sd_5yr=dplyr::lag(zoo::rollapply(.data$logit_prop5yr_er,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
                   ,
-                  log_sd_10yr=dplyr::lag(zoo::rollapply(.data$log_er_10,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
-                  logit_prop_sd_5yr=dplyr::lag(zoo::rollapply(qlogis(.data$Ave_5yr),width=15,FUN=sd,align="right",fill=NA_real_),1),
-                  ,
-                  logit_prop_sd_10yr=dplyr::lag(zoo::rollapply(qlogis(.data$Ave_5yr),width=15,FUN=sd,align="right",fill=NA_real_),1)
+                  logit_prop_sd_10yr=dplyr::lag(zoo::rollapply(.data$logit_prop10yr_er,width=15,FUN=\(x){sqrt(mean(x^2))},align="right",fill=NA_real_),1),
+                  # logit_prop_sd_5yr=dplyr::lag(zoo::rollapply(qlogis(pmin(.data$prop,.99)),width=5,FUN=sd,align="right",fill=NA_real_),1),
+                  # ,
+                  # logit_prop_sd_10yr=dplyr::lag(zoo::rollapply(qlogis(pmin(.data$prop,.99)),width=10,FUN=sd,align="right",fill=NA_real_),1)
 
                   ) |>
   dplyr::arrange(desc(CountDate))

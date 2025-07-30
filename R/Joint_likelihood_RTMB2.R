@@ -19,14 +19,15 @@ make_joint_likelihood_dat2<-function(dat,forecast_season){
   dat2<-dat |> dplyr::mutate(Delta_logjCK=c(NA,diff(log_lag_jack)),
                              prop=cum_cnt/tot_adult
                              ) |>
-    dplyr::left_join(agecomp |>
+    dplyr::left_join(agecomp |> #this is from a file in the data-raw folder that needs to be updated each year using run reconstruction outputs of age proportions
                        dplyr::filter(Season==forecast_season) |>
-                       dplyr::select(year=Year,pAge4=pAge.4)) |>
-    dplyr::mutate(pAge4=ifelse(is.na(pAge4),mean(pAge4,na.rm=T),pAge4),
-                  Age4=pAge4*tot_adult,
+                       dplyr::select(year=Year,one_ocean_prop=one_ocean_prop )) |>
+    dplyr::mutate(one_ocean_prop =ifelse(is.na(one_ocean_prop ),mean(one_ocean_prop ,na.rm=T),one_ocean_prop ),
+                  Age4=one_ocean_prop *tot_adult, #age 4 is carryover notation from when this was developed for spring Chinook. For falls, this represents the age 3's.
                   Age5_6=tot_adult-Age4,
                   lag_age4=dplyr::lag(Age4)) |>
-  dplyr::filter(year>=1990)
+  dplyr::filter(year>=
+                  ifelse(forecast_season%in%c("Tule","Bright"),2001,1990))
 
 
 ## Data
@@ -39,7 +40,7 @@ list(
 
   logCFlow=dat2 |> tidyr::fill(cfs_mean_ema) |> dplyr::pull(cfs_mean_ema) |> log() |> scale() |> c(),
   InseasonCount=dat2$cum_cnt,#%>% tail(1),
-  obslogitp=qlogis(dat2$prop) %>% head(-1),
+  obslogitp=qlogis(pmax(pmin(dat2$prop,.99),.01)) %>% head(-1),
   final_bon_log=log(head(dat2$tot_adult,-1))
 
 )
@@ -120,7 +121,8 @@ fit_joint_likelihood2<-function(dat,forecast_season){
                                                                   coef_cfs_mean_ema= adrep_est$B1 |> tail(1)|> c(),
                                                                   coef_cfs_mean_ema_sd= adrep_sd$B1 |> tail(1)|> c()
     )) |>
-    dplyr::mutate(mod_type="Joint_Lik",.before=dplyr::everything())
+    dplyr::mutate(mod_type="Joint_Lik",
+                  .before=dplyr::everything())
 
 
 }
@@ -172,14 +174,14 @@ Inseasonfor2 <- function(data_list) {
                     nll <- nll-  RTMB::dnorm(alpha[i]-alpha[i-1],0 ,
                                  sd_alpha,log=TRUE)
                   }
-    nll <- nll - (RTMB::dexp(sd_alpha,1,log=TRUE)+(tau_alpha))
+    nll <- nll - (RTMB::dexp(sd_alpha,1,log=TRUE))#+(tau_alpha))
 
   ## AR(1) year effect on proportion complete
   phi2 <- 2 / (1 + exp(-phi)) - 1
   tau_proc_err2 <- exp(tau_proc_err)
   nll <- nll - RTMB::dautoreg(year_eff,mu=0, phi=phi2, scale=tau_proc_err2,log=TRUE)
 
-  nll <- nll - (RTMB::dexp(tau_proc_err2,1,log=TRUE)+(tau_proc_err))
+  nll <- nll - (RTMB::dexp(tau_proc_err2,1,log=TRUE))
 
   pred<-InseasonCount/p
 
@@ -191,11 +193,11 @@ Inseasonfor2 <- function(data_list) {
 
   nll <- nll - sum(RTMB::dnorm(head(log(pred),-1),
                                final_bon_log ,
-                               .0001,log=TRUE))
+                               .001,log=TRUE))
 
 
   ## Observation model
-  nll <- nll - (RTMB::dexp(exp(resid_err),1,log=TRUE)+(resid_err))
+  nll <- nll - (RTMB::dexp(exp(resid_err),1,log=TRUE))#+(resid_err))
 
 
   #### preseason foreacst model

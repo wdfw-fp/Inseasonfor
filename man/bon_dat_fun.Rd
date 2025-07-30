@@ -6,22 +6,21 @@
 \usage{
 bon_dat_fun(
   pred_date = NULL,
-  count_file = NULL,
   url = "https://www.fpc.org/adults/R_coeadultcount_runsum"
 )
 }
 \arguments{
 \item{pred_date}{the last date of counts for which predictions are to be based}
 
-\item{count_file}{the file where fish counts are stored}
-
 \item{url}{the fishpassage center url where the data are pulled from.}
+
+\item{count_file}{the file where fish counts are stored}
 }
 \value{
 tibble with daily counts, proportions of runs complete, and forecasts
 }
 \description{
-Reads window count data from fish passage center.
+Reads window count data from fish passage center. Taken from Ben's fpcDamCounts package
 }
 \examples{
 

@@ -8,9 +8,9 @@ mod_results(
   pred_date,
   Count_dat = Bon_cnts,
   River_dat = flow_temp_dat,
-  Ocean_dat = ocean_cov,
   Bon_ch_year = Bon_ch_year,
-  write_local = FALSE
+  write_local = FALSE,
+  morph
 )
 }
 \arguments{

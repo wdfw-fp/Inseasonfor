@@ -12,10 +12,10 @@ params:
 
 ```{=html}
 <script>
-   $(document).ready(function() {
-     $head = $('#header');
-     $head.prepend('<img src=\"https://privatelands.wdfw.wa.gov/wdfwlogo_clrnotxt.png"\" style=\"float: right;width: 150px;\"/>')
-   });
+$(document).ready(function() {
+$head = $('#header');
+$head.prepend('<img src=\"https://privatelands.wdfw.wa.gov/wdfwlogo_clrnotxt.png"\" style=\"float: right;width: 150px;\"/>')
+});
 </script>
 ```
 
@@ -32,7 +32,7 @@ knitr::opts_chunk$set(echo = FALSE,
 
 if (params$use_dev_version) {
   pkgload::load_all(".")
-# } else {
+  # } else {
   # library(Inseasonfor)
 }
 
@@ -42,41 +42,40 @@ if (params$use_dev_version) {
 ```{r data}
 #fish data
 Bon_cnts<-bon_dat_fun(pred_date=NULL,
-                      count_file=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
   dplyr::filter(month>=3)
 
-forecastdate <- Bon_cnts |> dplyr::pull(CountDate) |>  max()
+forecastdate <- Bon_cnts |> dplyr::pull(CountDate) |>  max()#
 forecast_season<-chk_season(forecastdate)
 forecast_year<-lubridate::year(forecastdate)
 forecast_month<-lubridate::month(forecastdate)
 forecast_md<-lubridate::mday(forecastdate)
 
 
-  season_dates<-data.frame(season=c("spring","summer"),
-                           start_m=c("Mar","Jun"),
-                           start_md=c(1,16),
-                           end_m=c("Jun","Jul"),
-                           end_md=c(15,31))
-  
-
-bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
+season_dates<-data.frame(season=c("spring","summer","fall"),
+                         start_m=c("Mar","Jun","Aug"),
+                         start_md=c(1,16,1),
+                         end_m=c("Jun","Jul","Dec"),
+                         end_md=c(15,31,31))
 
 
-if(nrow(bon_yr_seas)==0){
-  errorCondition("There are no counts for the season of interest")
-}
+# bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
+# 
+# 
+# if(nrow(bon_yr_seas)==0){
+#   errorCondition("There are no counts for the season of interest")
+# }
 
 # flow temp data
 flow_temp_dat<-data.frame()
 num_tries<-0
 while((nrow(flow_temp_dat)==0)&num_tries<6){
-flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = NULL) 
-num_tries<-num_tries+1
-
-if( num_tries==5 & (nrow(flow_temp_dat)==0) ){
-  stop("Unable to get flow temp data from US Army Corps website")
-}
+  flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = NULL) 
+  num_tries<-num_tries+1
+  
+  if( num_tries==5 & (nrow(flow_temp_dat)==0) ){
+    stop("Unable to get flow temp data from US Army Corps website")
+  }
 }
 
 flow_temp_dat<-flow_temp_dat|> flow_ema_fun()
@@ -88,7 +87,7 @@ avg_10yr <- flow_temp_dat |>
   dplyr::group_by(month,md) |> 
   dplyr::summarise(
     `Flow (kcfs)`= mean(cfs_USACoE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
-     `River temp. (F)`= mean(temp_f_USACE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
+    `River temp. (F)`= mean(temp_f_USACE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
     .groups="drop") |> 
   dplyr::mutate(type="10yr ave.")
 
@@ -96,7 +95,7 @@ current_yr<- flow_temp_dat |>
   dplyr::filter(Year == forecast_year ) |> 
   dplyr::select(
     `Flow (kcfs)`=cfs_USACoE,
-     `River temp. (F)`= temp_f_USACE,
+    `River temp. (F)`= temp_f_USACE,
     flw_date,month,md) |> 
   dplyr::mutate(type="Current yr")
 
@@ -104,43 +103,15 @@ current_yr<- flow_temp_dat |>
 flow_temp_dat2<-
   current_yr |> 
   dplyr::bind_rows(avg_10yr)
+
+# BDO for fall
+if(forecast_month>8|
+   (forecast_month==8&forecast_md>=15)){
   
+  Fall_split_cnts<-tule_bright_split(forecastdate)
+  
+}
 
-
-
-#ocean cov data
-ocean_cov<-ocean_cov_fun(forecast_year) |> 
-  dplyr::mutate(Year=Year+2) |> dplyr::select(year=Year,lag2_Spr_NPGO = Spr_NPGO, lag2_Spr_PDO = Spr_PDO, lag2_Sum_NPGO = Sum_NPGO, lag2_Sum_PDO = Sum_PDO)
-
-
-
-# #fish data combined with river and ocean covariates for modeling
-# fish_river_ocean<-cnts_for_mod_fun(forecastdate,Bon_cnts) |>
-#   dplyr::left_join(flow_temp_dat |>
-#                      dplyr::filter(
-#                        month==forecast_month,
-#                                    md==forecast_md) |>
-#                      dplyr::select(year=Year,cfs_mean_ema,temp_mean_ema),
-#   ) |>
-#   dplyr::left_join(
-#     ocean_cov
-#   )|>
-#         dplyr::mutate(
-#           cnt_by_flow= cfs_mean_ema*log_cum_cnt,
-#           cnt_by_temp= temp_mean_ema *log_cum_cnt,
-#         ) |>   dplyr::filter(year<=forecast_year)
-# 
-# 
-# sib_R<-do_sibregresr_fun(fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
-# 
-# 
-# arima_F<-do_salmonForecasting_fun(data=fish_river_ocean,cov_vec=c("log_cum_cnt","cnt_by_flow"))
-# 
-#  JF_F<-fit_joint_likelihood(fish_river_ocean ,forecast = 118078,forecast_log_sd = .3)
-#  JF_F2<-fit_joint_likelihood2(fish_river_ocean )
-# 
-# 
-#  dplyr::bind_rows(sib_R,arima_F,JF_F,JF_F2) |> View()
 
 ```
 
@@ -153,67 +124,91 @@ ocean_cov<-ocean_cov_fun(forecast_year) |>
 cat("# {.tabset}","\n\n")
 
 
-for (season_i in c("spring","summer")){
+for (season_i in c("spring","summer","fall")){#
   
   seas_end<-(season_dates |> dplyr::filter(season==season_i) |> 
-    dplyr::select(end_m, end_md) |> paste(collapse=" ") |> paste(forecast_year,collapse=",") |> lubridate::mdy())
+               dplyr::select(end_m, end_md) |> paste(collapse=" ") |> paste(forecast_year,collapse=",") |> lubridate::mdy())
   
   
-    seas_start<-(season_dates |> dplyr::filter(season==season_i) |> 
-    dplyr::select(start_m, start_md) |> paste(collapse=" ") |> paste(forecast_year,collapse=",") |> lubridate::mdy())
+  seas_start<-(season_dates |> dplyr::filter(season==season_i) |> 
+                 dplyr::select(start_m, start_md) |> paste(collapse=" ") |> paste(forecast_year,collapse=",") |> lubridate::mdy())
   
   
-     #if forecast date greater than the season end date
-    if (forecastdate>seas_end){
-      forecastdate_i<-seas_end
-  ##set date to last day of season
-  
-    }else{
-      
-        forecastdate_i<-forecastdate
-      }
+  #if forecast date greater than the season end date
+  if (forecastdate>seas_end){
+    forecastdate_i<-seas_end
+    ##set date to last day of season
+    
+  }else{
+    
+    forecastdate_i<-forecastdate
+  }
   
   
   #if forecast date less than the season start date
   ## leave date as is but do not run plotting functions, only blurb. Another option would be to show last years' results in this case. 
   
   
- 
   
-
-Bon_ch<-Bon_ch_fun(forecastdate_i,Bon_cnts)
-Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)|>
-  dplyr::filter(month>=3)
-
-
-
-
-cat("## ",season_i,ifelse(season_i==forecast_season,"{.active}",""),"\n\n")
-
-
-
-inital_blurb_fun(Bon_ch|> dplyr::filter(CountDate==forecastdate_i),
-                 season_dates=season_dates)
-
   
-cat("\n\n")
-
-if(forecastdate_i<=forecastdate){
-
-summary_plot_tabs(flow_temp_dat2,Bon_ch,forecastdate_i)
-
-
- mod_wrapper_fun(forecastdate_i,Bon_cnts,flow_temp_dat,ocean_cov,Bon_ch_year,season_dates=season_dates,season_end_date=seas_end)
-
-
-
-bon_ch_tabs(
-    Bon_ch_year,
-    forecast_year,
-    forecastdate_i
-)
-
-}
+  
+  
+  cat("## ",season_i,ifelse(season_i==forecast_season,"{.active}",""),"\n\n")
+  
+  
+  
+  if (forecastdate <
+      as.Date(ifelse(season_i=="spring",as.Date(paste0(forecast_year,"-03-01")),
+                     ifelse(season_i=="summer",as.Date(paste0(forecast_year,"-06-16")),
+                            ifelse(season_i=="fall",as.Date(paste0(forecast_year,"-08-01"))))))){
+    
+    cat(sprintf("**The %s %s season starts %s**",forecast_year,season_i,
+                (season_dates |> dplyr::filter(season==season_i) |> dplyr::select(start_m,start_md) |> paste(collapse=" "))),"\n\n")
+  } else {
+    
+    
+    #  if(forecastdate_i<=forecastdate){
+    #    
+    if(season_i=="fall"){
+      
+      cat("During the fall season, we partition  adult Chinook counts into bright adults, tule adults, and tule stubbies based on a visual assessment of the number of fish of each class passing the dam during two hours of the day. These visual assignments are subject to error and are a tool for inseason forecasting but not post-season run reconstruction. The predictions below are based on these visual assesments.","\n\n")
+      
+      cat("### {.tabset}","\n\n")
+      
+      for (morph in c("Tule","Bright")){
+        
+        cat("#### ",morph,"\n\n")
+        
+        
+        
+        render_tab(pred_date=forecastdate_i,
+                   counts=Fall_split_cnts,
+                   river_env=flow_temp_dat,
+                   do_plots=(forecastdate_i>=seas_start),
+                   seas_dats=season_dates,
+                   seas_end=seas_end,
+                   write_local=params$use_dev_version,
+                   morph=morph)
+        
+      }
+      cat("## {-}","\n\n")
+      
+    } else {
+      
+      
+      render_tab(pred_date=forecastdate_i,
+                 counts=Bon_cnts,
+                 river_env=flow_temp_dat,
+                 do_plots=(forecastdate_i>=seas_start),
+                 seas_dats=season_dates,
+                 seas_end=seas_end,
+                 write_local=params$use_dev_version,
+                 morph="")
+      
+      
+    }
+  }
+  
 }
 
 cat("# {-}","\n\n")
