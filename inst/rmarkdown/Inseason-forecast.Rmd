@@ -45,7 +45,7 @@ Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
   dplyr::filter(month>=3)
 
-forecastdate <- as.Date("2024-4-10")#Bon_cnts |> dplyr::pull(CountDate) |>  max()#
+forecastdate <- Bon_cnts |> dplyr::pull(CountDate) |>  max()#
 forecast_season<-chk_season(forecastdate)
 forecast_year<-lubridate::year(forecastdate)
 forecast_month<-lubridate::month(forecastdate)
