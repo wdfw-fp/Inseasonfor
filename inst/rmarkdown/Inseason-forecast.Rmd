@@ -219,6 +219,8 @@ cat("# {-}","\n\n")
 
 Fish counts are accessed from the [Fish Passage Center](https://www.fpc.org) and river environment data from the [US Army Corps of Engineers Northwest District](https://www.nwd-wc.usace.army.mil/dd/common/dataquery/www/?k=bonneville)
 
+Fall season visual estimates of tule and bright passage are available from [data.wa.gov](https://data.wa.gov/en/Natural-Resources-Environment/WDFW-Bonneville-Dam-observations/w52y-hhyj/about_data)
+
 ## Additional resources
 
 **Columbia Basin Research** produces spring and fall Chinook run size predictions available [here](https://www.cbr.washington.edu/inseason/adult).
