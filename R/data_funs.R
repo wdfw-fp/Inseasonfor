@@ -28,7 +28,7 @@ chk_season<-function(day){
   month=lubridate::month(day)
   mday=lubridate::mday(day)
   ifelse(
-    month>=8,"fall",
+    dplyr::between(month,8,10),"fall",
     ifelse(
       (month==7|(month==6 & mday>15)),"summer",
       ifelse(
@@ -89,8 +89,9 @@ bon_dat_fun<-function(pred_date=NULL,
   }
 
   # if(edate>=sdate){
-    new_dat<-readr::read_csv(glue::glue("{url}_salmon_getresults.php?dam=BON&sdate={sdate}&edate={edate}"),
-                             col_types=readr::cols(CountDate=readr::col_date(format="%m/%d/%Y"))) |>
+    cap_out <- capture.output({
+    new_dat<-suppressMessages( suppressWarnings(readr::read_csv(glue::glue("{url}_salmon_getresults.php?dam=BON&sdate={sdate}&edate={edate}"),
+                             col_types=readr::cols(CountDate=readr::col_date(format="%m/%d/%Y"))))) |>
       dplyr::select(CountDate,AdultChinook,JackChinook) |>
       dplyr::mutate(year=lubridate::year(.data$CountDate),
                     yday=lubridate::yday(.data$CountDate),
@@ -102,6 +103,7 @@ bon_dat_fun<-function(pred_date=NULL,
                       .data$month>=3~"spring",
                       TRUE~"Winter?"
                     ))
+    })
 return(new_dat)
 #     dat<-dplyr::bind_rows(local_data, new_dat)
 #     readr::write_csv(dat,count_file)

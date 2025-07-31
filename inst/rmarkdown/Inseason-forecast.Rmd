@@ -39,11 +39,24 @@ if (params$use_dev_version) {
 
 ```
 
-```{r data}
+```{r data, message=FALSE, warning=FALSE}
 #fish data
-Bon_cnts<-bon_dat_fun(pred_date=NULL,
+
+
+  Bon_cnts<-data.frame()
+num_tries<-0
+while((nrow(Bon_cnts)==0)&num_tries<6){
+
+  try(Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
-  dplyr::filter(month>=3)
+  dplyr::filter(month>=3))
+
+  num_tries<-num_tries+1
+  
+  if( num_tries==5 & (nrow(Bon_cnts)==0) ){
+    stop("Unable to get data ladder split or BDO data")
+  }
+}
 
 forecastdate <- Bon_cnts |> dplyr::pull(CountDate) |>  max()#
 forecast_season<-chk_season(forecastdate)
@@ -55,8 +68,8 @@ forecast_md<-lubridate::mday(forecastdate)
 season_dates<-data.frame(season=c("spring","summer","fall"),
                          start_m=c("Mar","Jun","Aug"),
                          start_md=c(1,16,1),
-                         end_m=c("Jun","Jul","Dec"),
-                         end_md=c(15,31,31))
+                         end_m=c("Jun","Jul","Oct"),
+                         end_md=c(15,31,30))
 
 
 # bon_yr_seas<-Bon_cnts |> dplyr::filter(season==forecast_season,year==forecast_year)
@@ -80,37 +93,24 @@ while((nrow(flow_temp_dat)==0)&num_tries<6){
 
 flow_temp_dat<-flow_temp_dat|> flow_ema_fun()
 
-
-##add 10-year average to current year flow and temp data for plotting
-avg_10yr <- flow_temp_dat |> 
-  dplyr::filter(Year < forecast_year & Year >= forecast_year - 10) |> 
-  dplyr::group_by(month,md) |> 
-  dplyr::summarise(
-    `Flow (kcfs)`= mean(cfs_USACoE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
-    `River temp. (F)`= mean(temp_f_USACE[Year < forecast_year & Year >= forecast_year - 10], na.rm = TRUE),
-    .groups="drop") |> 
-  dplyr::mutate(type="10yr ave.")
-
-current_yr<- flow_temp_dat |> 
-  dplyr::filter(Year == forecast_year ) |> 
-  dplyr::select(
-    `Flow (kcfs)`=cfs_USACoE,
-    `River temp. (F)`= temp_f_USACE,
-    flw_date,month,md) |> 
-  dplyr::mutate(type="Current yr")
-
-
-flow_temp_dat2<-
-  current_yr |> 
-  dplyr::bind_rows(avg_10yr)
-
 # BDO for fall
-if(forecast_month>8|
-   (forecast_month==8&forecast_md>=15)){
+# if(forecast_month>8|
+#    (forecast_month==8&forecast_md>=15)){
+  Fall_split_cnts<-data.frame()
+num_tries<-0
+while((nrow(Fall_split_cnts)==0)&num_tries<6){
+
+  try(Fall_split_cnts<-tule_bright_split(forecastdate))
+
+  num_tries<-num_tries+1
   
-  Fall_split_cnts<-tule_bright_split(forecastdate)
-  
+  if( num_tries==5 & (nrow(flow_temp_dat)==0) ){
+    stop("Unable to get data ladder split or BDO data")
+  }
 }
+
+  
+# }
 
 
 ```
@@ -162,9 +162,14 @@ for (season_i in c("spring","summer","fall")){#
                      ifelse(season_i=="summer",as.Date(paste0(forecast_year,"-06-16")),
                             ifelse(season_i=="fall",as.Date(paste0(forecast_year,"-08-01"))))))){
     
-    cat(sprintf("**The %s %s season starts %s**",forecast_year,season_i,
-                (season_dates |> dplyr::filter(season==season_i) |> dplyr::select(start_m,start_md) |> paste(collapse=" "))),"\n\n")
-  } else {
+    cat(sprintf("**The %s %s season starts %s. Below are results from %s**", forecast_year,season_i,
+                (season_dates |> dplyr::filter(season==season_i) |> dplyr::select(start_m,start_md) |> paste(collapse=" ")),(forecast_year-1)),"\n\n")
+    
+    #set date to last day of previous year
+   forecastdate_i<-seas_end<- (season_dates |> dplyr::filter(season==season_i) |> 
+               dplyr::select(end_m, end_md) |> paste(collapse=" ") |> paste((forecast_year-1),collapse=",") |> lubridate::mdy())
+    
+  } #else {
     
     
     #  if(forecastdate_i<=forecastdate){
@@ -207,7 +212,7 @@ for (season_i in c("spring","summer","fall")){#
       
       
     }
-  }
+  # }
   
 }
 

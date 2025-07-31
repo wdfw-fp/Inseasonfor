@@ -15,15 +15,15 @@ if(morph=="Tule"){
     counts2 <-counts
   }
 
-
+  for_year<-lubridate::year(pred_date)
   Bon_ch<-Bon_ch_fun(pred_date,counts2)
-  Bon_ch_year<-Bon_ch |> dplyr::filter(year==forecast_year)|>
+  Bon_ch_year<-Bon_ch |> dplyr::filter(year==for_year)|>
     dplyr::filter(month>=3) |>
     dplyr::mutate(
     AdultChinook=ifelse(CountDate>pred_date,NA_real_,AdultChinook),
 )
 
-  inital_blurb_fun(Bon_ch|> dplyr::filter(CountDate==forecastdate_i),
+  inital_blurb_fun(Bon_ch|> dplyr::filter(CountDate==pred_date),
                    season_dates=season_dates,
                    morph=morph)
 
@@ -31,7 +31,7 @@ if(morph=="Tule"){
   cat("\n\n")
 
 
-    summary_plot_tabs(flow_temp_dat2,Bon_ch,forecastdate_i)
+    summary_plot_tabs(river_env,Bon_ch,pred_date)
 
 
 
@@ -45,8 +45,8 @@ if(morph=="Tule"){
 
     bon_ch_tabs(
       Bon_ch_year,
-      forecast_year,
-      forecastdate_i
+      for_year,
+      pred_date
     )
 
 

@@ -40,11 +40,13 @@ Bon_ch_fun<-function(pred_date=NULL,
     dplyr::mutate(
       total=cumsum(.data$AdultChinook),
       total=ifelse(.data$CountDate>pred_date,NA,total),
-      prop=.data$total/sum(.data$AdultChinook)
+      prop=.data$total/sum(.data$AdultChinook),
+      prop=pmax(.004,pmin(.997,prop))
     ) |>
     dplyr::group_by(.data$month,.data$mday) |>
     dplyr::mutate(Ave_5yr=dplyr::lag(zoo::rollapply(.data$prop,width=5,FUN=\(x)mean(x,na.rm=T),align="right",fill=NA_real_),1),
                   Ave_10yr=dplyr::lag(zoo::rollapply(.data$prop,width=10,FUN=\(x)mean(x,na.rm=T),align="right",fill=NA_real_),1),
+                  across(c(Ave_5yr,Ave_10yr),\(x)(pmax(.004,pmin(.997,x)))),
                   Ave_10yr_daily_cnt=dplyr::lag(zoo::rollapply(.data$AdultChinook,width=10,FUN=\(x)mean(x,na.rm=T),align="right",fill=NA_real_),1)
                   ) |>
     dplyr::ungroup() |>

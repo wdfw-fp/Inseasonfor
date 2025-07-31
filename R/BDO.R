@@ -63,9 +63,9 @@ fpc_laddersplit<-function (pred_date=NULL,
   } else{
     edate<-pred_date
   }
-
-  suppressWarnings(readr::read_csv(glue::glue("{url}salmon.php?sdate=1999-01-01&edate={edate}"),
-                                   col_types = readr::cols(CountDate = readr::col_date(format = "%m/%d/%Y")))) |>
+  cap_out <- capture.output({
+  out<-  suppressMessages( suppressWarnings(readr::read_csv(glue::glue("{url}salmon.php?sdate=1999-01-01&edate={edate}"),
+                                   col_types = readr::cols(CountDate = readr::col_date(format = "%m/%d/%Y"))))) |>
     dplyr::filter(!is.na(CountDate)) |>
     dplyr::filter(Location =="Bonneville") |>
     dplyr::select(CountDate,Ladder,AdultChinook,JackChinook) |>
@@ -74,7 +74,9 @@ fpc_laddersplit<-function (pred_date=NULL,
     dplyr::group_by(Ladder) |>
     dplyr::arrange(CountDate) |>
     tidyr::fill(c(AdultChinook,JackChinook), .direction = "down")
+    })
 
+  out
 }
 
 
