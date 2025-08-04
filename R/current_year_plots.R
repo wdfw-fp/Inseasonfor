@@ -116,7 +116,9 @@ cat("\n\n")
 
 cat("###### Prediction error","\n\n")
 (prediction_error(Bon_ch_year))
-cat("\n\n")
+
+cat("##### {-}","\n\n")
+
 }
 
 

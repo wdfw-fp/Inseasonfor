@@ -44,18 +44,18 @@ if (params$use_dev_version) {
 
 
   Bon_cnts<-data.frame()
-num_tries<-0
-while((nrow(Bon_cnts)==0)&num_tries<6){
+num_tries_Bon_cnts<-0
+while((nrow(Bon_cnts)==0)&num_tries_Bon_cnts<6){
 
   try(Bon_cnts<-bon_dat_fun(pred_date=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
-  dplyr::filter(month>=3))
+  dplyr::filter(month>=3),silent=TRUE)
 
-  num_tries<-num_tries+1
+  num_tries_Bon_cnts<-num_tries_Bon_cnts+1
   
-  if( num_tries==5 & (nrow(Bon_cnts)==0) ){
-    stop("Unable to get data ladder split or BDO data")
-  }
+  # if( num_tries_Bon_cnts==5 & (nrow(Bon_cnts)==0) ){
+  #   stop("Unable to get data ladder split data")
+  # }
 }
 
 forecastdate <- Bon_cnts |> dplyr::pull(CountDate) |>  max()#
@@ -81,14 +81,14 @@ season_dates<-data.frame(season=c("spring","summer","fall"),
 
 # flow temp data
 flow_temp_dat<-data.frame()
-num_tries<-0
-while((nrow(flow_temp_dat)==0)&num_tries<6){
-  flow_temp_dat<-get_flow_data(forecastdate = forecastdate,flow_file = NULL) 
-  num_tries<-num_tries+1
+num_tries_flow_temp_dat<-0
+while((nrow(flow_temp_dat)==0)&num_tries_flow_temp_dat<6){
+  flow_temp_dat<-try(get_flow_data(forecastdate = forecastdate,flow_file = NULL),silent=TRUE) 
+  num_tries_flow_temp_dat<-num_tries_flow_temp_dat+1
   
-  if( num_tries==5 & (nrow(flow_temp_dat)==0) ){
-    stop("Unable to get flow temp data from US Army Corps website")
-  }
+  # if( num_tries_flow_temp_dat==5 & (nrow(flow_temp_dat)==0) ){
+  #   stop("Unable to get flow temp data from US Army Corps website")
+  # }
 }
 
 flow_temp_dat<-flow_temp_dat|> flow_ema_fun()
@@ -96,22 +96,21 @@ flow_temp_dat<-flow_temp_dat|> flow_ema_fun()
 # BDO for fall
 # if(forecast_month>8|
 #    (forecast_month==8&forecast_md>=15)){
+
   Fall_split_cnts<-data.frame()
-num_tries<-0
-while((nrow(Fall_split_cnts)==0)&num_tries<6){
+num_tries_Fall_split_cnts<-0
+while((nrow(Fall_split_cnts)==0)&num_tries_Fall_split_cnts<6){
 
-  try(Fall_split_cnts<-tule_bright_split(forecastdate))
+  try(Fall_split_cnts<-tule_bright_split(forecastdate),silent=TRUE)
 
-  num_tries<-num_tries+1
+  num_tries_Fall_split_cnts<-num_tries_Fall_split_cnts+1
   
-  if( num_tries==5 & (nrow(flow_temp_dat)==0) ){
-    stop("Unable to get data ladder split or BDO data")
-  }
+  # if( num_tries_Fall_split_cnts==10 & (nrow(flow_temp_dat)==0) ){
+  #   stop("Unable to get data ladder split data")
+  # }
 }
 
   
-# }
-
 
 ```
 

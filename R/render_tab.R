@@ -34,6 +34,26 @@ if(morph=="Tule"){
     summary_plot_tabs(river_env,Bon_ch,pred_date)
 
 
+    if((lubridate::month(pred_date)<4)|
+       ((lubridate::month(pred_date)==4)&
+        (lubridate::mday(pred_date)<5))){
+      cat("\n\n")
+
+      cat("**Model predictions for spring season wiill start on April 5th**")
+      cat("\n\n")
+
+    }else{
+      if(((lubridate::month(pred_date)==8)&
+          (lubridate::mday(pred_date)<15))){
+        cat("\n\n")
+
+        cat("**Model predictions for fall season will start on August 15th**")
+            cat("\n\n")
+
+
+
+      }else{
+
 
     mod_wrapper_fun(pred_date,counts2,river_env,#ocean_cov,
                     Bon_ch_year,season_dates=seas_dats,
@@ -41,6 +61,10 @@ if(morph=="Tule"){
                     write_local=write_local,
                     morph)
 
+
+
+      }
+    }
 
 
     bon_ch_tabs(
