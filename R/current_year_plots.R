@@ -44,12 +44,14 @@ current_year_cnts_plot<-function(env_dat,Bon_ch_year){
           month,
           md = mday
         )|>
-        tidyr::pivot_longer(c(!!as.character(cur_yr),`10yr ave.`), names_to = "type",values_to = "Adult count") |>
-        dplyr::mutate()
+        tidyr::pivot_longer(c(!!as.character(cur_yr),`10yr ave.`), names_to = "type",values_to = "Adult count")
     ) |>
     tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value")  |>
-    ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=type))+ggplot2::geom_line()+ ggplot2::geom_point(size=2.5) + ggplot2::facet_wrap(~Param,ncol=1,scales="free_y") +
-    ggplot2::scale_color_manual(values=c("#E69F00","#56B4E9")) + #c("#E69F00","#56B4E9","#CC79A7"))+
+    dplyr::arrange(type) |>
+    ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=type))+ggplot2::geom_line()+ ggplot2::geom_point(size=2.5
+      ) + ggplot2::facet_wrap(~Param,ncol=1,scales="free_y") +
+    ggplot2::scale_color_manual(values=c("#E69F00","#56B4E9")) +
+    # ggplot2::scale_size_manual(values=c(1.5,2.5)) +#c("#E69F00","#56B4E9","#CC79A7"))+
     ggplot2::labs(y="",
                   col=NULL,
                   shape=NULL) +
