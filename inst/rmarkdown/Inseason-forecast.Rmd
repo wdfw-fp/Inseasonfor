@@ -48,7 +48,8 @@ num_tries_Bon_cnts<-0
 while((nrow(Bon_cnts)==0)&num_tries_Bon_cnts<6){
 
   try(Bon_cnts<-bon_dat_fun(pred_date=NULL,
-                      url = "https://www.fpc.org/adults/R_coeadultcount_runsum") |> 
+                      url = "https://www.fpc.org/adults/R_coeadultcount_runsum",
+                      past_bon_cnts = past_bon_cnts) |> 
   dplyr::filter(month>=3),silent=TRUE)
 
   num_tries_Bon_cnts<-num_tries_Bon_cnts+1
@@ -83,7 +84,7 @@ season_dates<-data.frame(season=c("spring","summer","fall"),
 flow_temp_dat<-data.frame()
 num_tries_flow_temp_dat<-0
 while((nrow(flow_temp_dat)==0)&num_tries_flow_temp_dat<6){
-  flow_temp_dat<-try(get_flow_data(forecastdate = forecastdate,flow_file = NULL),silent=TRUE) 
+  flow_temp_dat<-try(get_flow_data(forecastdate = forecastdate,flow_file = past_flow_dat),silent=TRUE) 
   num_tries_flow_temp_dat<-num_tries_flow_temp_dat+1
   
   # if( num_tries_flow_temp_dat==5 & (nrow(flow_temp_dat)==0) ){

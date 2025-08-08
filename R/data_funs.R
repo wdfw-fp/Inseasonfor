@@ -56,6 +56,8 @@ chk_season<-function(day){
 #' bon_dat_fun()
 #'
 bon_dat_fun<-function(pred_date=NULL,
+                      sdate=NULL,
+                      past_bon_cnts=NULL,
                       # count_file=NULL,
                       url = "https://www.fpc.org/adults/R_coeadultcount_runsum"){
 
@@ -79,8 +81,10 @@ bon_dat_fun<-function(pred_date=NULL,
   # } else {
   #   message("Local file not found at: ", count_file)
   #   local_data<-NULL
-    sdate<-"1980-01-01"
-  # }
+  if(is.null(sdate)){
+    sdate<-paste0(as.integer(format(Sys.Date(), "%Y")),"-03-01")
+  }
+    # }
 
   if(is.null(pred_date)){
     edate<-Sys.Date()+2
@@ -104,8 +108,14 @@ bon_dat_fun<-function(pred_date=NULL,
                       TRUE~"Winter?"
                     ))
     })
-return(new_dat)
-#     dat<-dplyr::bind_rows(local_data, new_dat)
+
+
+return(
+  dplyr::bind_rows(
+  past_bon_cnts,
+    new_dat)
+)
+  #     dat<-dplyr::bind_rows(local_data, new_dat)
 #     readr::write_csv(dat,count_file)
 #     return(dat)
 #   }
@@ -249,7 +259,9 @@ get_usace_flow_temp_data <- function(forecastdate,startdate,dam="BON") {
 #' @export
 #'
 #' @examples
-get_flow_data<-function(forecastdate=NULL,flow_file=NULL){
+get_flow_data<-function(forecastdate=NULL,
+                        sdate=NULL,
+                        flow_file=NULL){
 
   # Use default location if not provided
   # if (is.null(flow_file)) {
@@ -266,7 +278,10 @@ get_flow_data<-function(forecastdate=NULL,flow_file=NULL){
   # } else {
   #   message("Local file not found at: ", flow_file)
   #   local_data<-NULL
-    sdate<-"1980-01-01"
+
+  if(is.null(sdate)){
+    sdate<-paste0(as.integer(format(Sys.Date(), "%Y")),"-03-01")
+  }
   # }
 
   if(is.null(forecastdate)){
@@ -302,7 +317,11 @@ get_flow_data<-function(forecastdate=NULL,flow_file=NULL){
     #     )
     # }
 
-return(all_dat|> dplyr::filter(flw_date<lubridate::today()))
+return(flow_file |>
+       dplyr::bind_rows(all_dat|>
+         dplyr::filter(flw_date<lubridate::today())
+         ))
+
   #   dat<-dplyr::bind_rows(local_data, all_dat |> dplyr::filter(flw_date >max(local_data$flw_date)) ) |> dplyr::filter(flw_date<lubridate::today())
   #   readr::write_csv(dat,flow_file)
   #   return(dat|> flow_ema_fun())
