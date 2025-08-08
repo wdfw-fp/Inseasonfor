@@ -91,15 +91,15 @@ tule_bright_split<-function(pred_date){
   ladder_cnts<-
     ladder_cnts_historic |>
     dplyr::bind_rows(
-      # fpc_laddersplit(pred_date)
+      fpc_laddersplit(pred_date))
 
-      get_adult_ladder_DART(start_year = as.integer(format(Sys.Date(), "%Y")), end_year = as.integer(format(Sys.Date(), "%Y")), proj = "BON") |>
-    pivot_DART_ladder_counts() |>
-      dplyr::mutate(
-      CountDate=lubridate::ymd(CountDate)
-      )
+    #   get_adult_ladder_DART(start_year = as.integer(format(Sys.Date(), "%Y")), end_year = as.integer(format(Sys.Date(), "%Y")), proj = "BON") |>
+    # pivot_DART_ladder_counts() |>
+    #   dplyr::mutate(
+    #   CountDate=lubridate::ymd(CountDate)
+      # )
 
-      )
+      # )
 
 
 
