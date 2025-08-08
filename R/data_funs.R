@@ -81,8 +81,8 @@ bon_dat_fun<-function(pred_date=NULL,
   # } else {
   #   message("Local file not found at: ", count_file)
   #   local_data<-NULL
-  if(is.null(sdate)){
-    sdate<-paste0(as.integer(format(Sys.Date(), "%Y")),"-03-01")
+  if(is.null(sdate)&!is.null(past_bon_cnts)){
+    sdate<-max(past_bon_cnts$CountDate)+1
   }
     # }
 
@@ -279,8 +279,8 @@ get_flow_data<-function(forecastdate=NULL,
   #   message("Local file not found at: ", flow_file)
   #   local_data<-NULL
 
-  if(is.null(sdate)){
-    sdate<-paste0(as.integer(format(Sys.Date(), "%Y")),"-03-01")
+  if(is.null(sdate)&!is.null(flow_file)){
+    sdate<-max(flow_file$flw_date)+1
   }
   # }
 
