@@ -97,7 +97,7 @@ cat(paste("Mean absolute percent error  (over 15 year retrospectiv) of predictio
 
 
 
-summary_plot_tabs<-function(flow_temp_dat2,Bon_ch,forecastdate){
+summary_plot_tabs<-function(flow_temp_dat1,Bon_ch,forecastdate){
 
     for_year<-lubridate::year(forecastdate)
 
@@ -109,7 +109,7 @@ summary_plot_tabs<-function(flow_temp_dat2,Bon_ch,forecastdate){
 cat("##### {.tabset}","\n\n")
 
 cat("###### Current year","\n\n")
-current_year_cnts_plot(flow_temp_dat2,Bon_ch_year)
+current_year_cnts_plot(flow_temp_dat1,Bon_ch_year)
 cat("\n\n")
 
 cat("###### Percent complete","\n\n")

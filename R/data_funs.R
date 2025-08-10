@@ -440,6 +440,15 @@ ocean_cov_fun<-function(pred_year,ocean_cov_file=NULL){
 }
 
 
+#' cnts_for_mod_fun
+#'
+#' @param forecastdate
+#' @param Bon_cnts
+#'
+#' @return
+#' @export
+#'
+#' @examples
 cnts_for_mod_fun<-function(forecastdate,Bon_cnts){
 
   forecast_year<-lubridate::year(forecastdate)
@@ -463,4 +472,27 @@ cnts_for_mod_fun<-function(forecastdate,Bon_cnts){
     dplyr::select(year,cum_cnt,tot_adult,tot_jack,lag_jack) |>
     dplyr::mutate(tot_adult=ifelse(year==forecast_year,NA,tot_adult),
   log_cum_cnt=log(cum_cnt),log_tot_adult=log(tot_adult),log_lag_jack=log(lag_jack))
+}
+
+
+retry_get_data <- function(expr, max_tries = 6, name = "data") {
+  result <- data.frame()
+  num_tries <- 0
+
+  while (num_tries < max_tries) {
+    attempt <- try(eval(expr), silent = TRUE)
+
+    if (is.data.frame(attempt) && nrow(attempt) > 0) {
+      result <- attempt
+      break
+    }
+
+    num_tries <- num_tries + 1
+  }
+
+  if (nrow(result) == 0) {
+    warning(sprintf("Failed to get %s after %d attempts.", name, max_tries))
+  }
+
+  return(result)
 }

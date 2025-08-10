@@ -42,40 +42,19 @@ if (params$use_dev_version) {
 ```{r data, message=FALSE, warning=FALSE}
 
 # Bonneville counts
-Bon_cnts <- data.frame()
-num_tries_Bon_cnts <- 0
-max_tries <- 6
-
-while (num_tries_Bon_cnts < max_tries) {
-  
-  # Try to get and filter the data
-  attempt <- try(
+Bon_cnts <- retry_get_data(
+  quote(
     bon_dat_fun(
       pred_date = NULL,
       url = "https://www.fpc.org/adults/R_coeadultcount_runsum",
       past_bon_cnts = past_bon_cnts
     ) |> 
-    dplyr::filter(month >= 3),
-    silent = TRUE
-  )
-  
-  # If successful and non-empty, store and break
-  if (is.data.frame(attempt) && nrow(attempt) > 0) {
-    Bon_cnts <- attempt
-    break
-  }
-  
-  # Increment tries
-  num_tries_Bon_cnts <- num_tries_Bon_cnts + 1
-}
+    dplyr::filter(month >= 3)
+  ),
+  name = "Bonneville counts"
+)
 
-# Warn if all attempts failed
-if (nrow(Bon_cnts) == 0) {
-  warning(sprintf(
-    "Failed to get Bonneville counts after %d attempts.",
-    max_tries
-  ))
-}
+
 
 forecastdate <- Bon_cnts |> dplyr::pull(CountDate) |>  max()#
 forecast_season<-chk_season(forecastdate)
@@ -93,73 +72,20 @@ season_dates<-data.frame(season=c("spring","summer","fall"),
 
 
 
-## Flow temp data
-flow_temp_dat <- data.frame()
-num_tries_flow_temp_dat <- 0
-max_tries <- 6
+# Flow temp data
+flow_temp_dat <- retry_get_data(
+  quote(get_flow_data(forecastdate = forecastdate, flow_file = past_flow_dat)),
+  name = "flow data"
+)
 
-while (num_tries_flow_temp_dat < max_tries) {
-  
-  # Try to get the data
-  attempt <- try(
-    get_flow_data(forecastdate = forecastdate, flow_file = past_flow_dat),
-    silent = TRUE
-  )
-  
-  # If successful and it's a non-empty data frame, store and break
-  if (is.data.frame(attempt) && nrow(attempt) > 0) {
-    flow_temp_dat <- attempt
-    flow_temp_dat<-flow_temp_dat|> flow_ema_fun()
-    break
-  }
-  
-  # Increment tries
-  num_tries_flow_temp_dat <- num_tries_flow_temp_dat + 1
-}
-
-# If all attempts failed, warn the user
-if (nrow(flow_temp_dat) == 0) {
-  warning(sprintf(
-    "Failed to get flow data after %d attempts.",
-    max_tries
-  ))
-}
-
-
-
+flow_temp_dat<-flow_temp_dat|> flow_ema_fun()
 
 # Fall split counts
-Fall_split_cnts <- data.frame()
-num_tries_Fall_split_cnts <- 0
-max_tries <- 6
+Fall_split_cnts <- retry_get_data(
+  quote(tule_bright_split(forecastdate)),
+  name = "Fall split counts"
+)
 
-while (num_tries_Fall_split_cnts < max_tries) {
-  
-  # Try to get the data
-  attempt <- try(
-    tule_bright_split(forecastdate),
-    silent = TRUE
-  )
-  
-  # If successful and non-empty, store and break
-  if (is.data.frame(attempt) && nrow(attempt) > 0) {
-    Fall_split_cnts <- attempt
-    break
-  }
-  
-  # Increment tries
-  num_tries_Fall_split_cnts <- num_tries_Fall_split_cnts + 1
-}
-
-# Warn if all attempts failed
-if (nrow(Fall_split_cnts) == 0) {
-  warning(sprintf(
-    "Failed to get Fall split counts after %d attempts.",
-    max_tries
-  ))
-}
-
-  
 
 ```
 
