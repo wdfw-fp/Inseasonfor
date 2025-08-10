@@ -6,6 +6,8 @@
 \usage{
 bon_dat_fun(
   pred_date = NULL,
+  sdate = NULL,
+  past_bon_cnts = NULL,
   url = "https://www.fpc.org/adults/R_coeadultcount_runsum"
 )
 }

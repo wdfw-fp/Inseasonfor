@@ -4,7 +4,7 @@
 \alias{get_flow_data}
 \title{get_flow_data}
 \usage{
-get_flow_data(forecastdate = NULL, flow_file = NULL)
+get_flow_data(forecastdate = NULL, sdate = NULL, flow_file = NULL)
 }
 \arguments{
 \item{flow_file}{}

@@ -6,6 +6,7 @@
 \usage{
 fpc_laddersplit(
   pred_date = NULL,
+  sdate = as.Date(paste0(lubridate::year(pred_date), "-08-01")),
   url = "https://www.fpc.org/adults/R_adultcoequeries_laddersplitreport_results_get"
 )
 }
