@@ -62,11 +62,25 @@ jobs:
         shell: Rscript {0}
 
 
-
-
       # 6. render the rmarkdown
-      - name: Render the report using custom script
-        run: Rscript inst/scripts/run_render.R
+      - name: Render the report using custom script (with retries)
+        run: |
+          for i in 1 2 3; do
+            echo "Attempt $i: rendering report..."
+            if Rscript inst/scripts/run_render.R; then
+              echo "Render succeeded on attempt $i"
+              break
+            fi
+            echo "Render failed on attempt $i"
+            if [ $i -lt 3 ]; then
+              echo "Retrying in 60 seconds..."
+              sleep 60
+            else
+              echo "All attempts failed."
+              exit 1
+            fi
+          done
+
 
       # 7. if new model results were added to .csv, move to location for git tracking
       - name: Move CSV into inst/data-cache for Git tracking
