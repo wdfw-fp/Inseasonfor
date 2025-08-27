@@ -63,24 +63,7 @@ bon_dat_fun<-function(pred_date=NULL,
 
 
 
-  # Use default location if not provided
-  # if (is.null(count_file)) {
-  #   count_file <- get_default_count_path()
-  # }
-  #
-  # fs::dir_create(dirname(count_file))
-  #
-  # #fetch data
-  #
-  # if (file.exists(count_file)) {
-  #   local_data <-
-  #     readr::read_csv(count_file) |> tidyr::drop_na()
-  #
-  #   sdate <- max(local_data$CountDate  )+1
-  #   #
-  # } else {
-  #   message("Local file not found at: ", count_file)
-  #   local_data<-NULL
+
   if(is.null(sdate)&!is.null(past_bon_cnts)){
     sdate<-max(past_bon_cnts$CountDate)+1
   }
@@ -92,36 +75,50 @@ bon_dat_fun<-function(pred_date=NULL,
     edate<-pred_date
   }
 
-  # if(edate>=sdate){
-    cap_out <- capture.output({
-    new_dat<-suppressMessages( suppressWarnings(readr::read_csv(glue::glue("{url}_salmon_getresults.php?dam=BON&sdate={sdate}&edate={edate}"),
-                             col_types=readr::cols(CountDate=readr::col_date(format="%m/%d/%Y"))))) |>
-      dplyr::select(CountDate,AdultChinook,JackChinook) |>
-      dplyr::mutate(year=lubridate::year(.data$CountDate),
-                    yday=lubridate::yday(.data$CountDate),
-                    month=lubridate::month(.data$CountDate),
-                    mday=lubridate::mday(.data$CountDate),
-                    season=dplyr::case_when(
-                      .data$month>=8~"fall",
-                      (.data$month==7|(.data$month==6&.data$mday>15))~"summer",
-                      .data$month>=3~"spring",
-                      TRUE~"Winter?"
-                    ))
-    })
+  full_url <- glue::glue("{url}_salmon_getresults.php?dam=BON&sdate={sdate}&edate={edate}")
+  message("Attempting to read: ", full_url)
+
+  # --- Check HTTP status before download ---
+  resp <- httr2::request(full_url) |> httr2::req_perform()
+  status <- httr2::resp_status(resp)
+  if (status != 200) {
+    stop("FPC returned HTTP status ", status, " for URL: ", full_url)
+  }
 
 
-return(
-  dplyr::bind_rows(
-  past_bon_cnts,
-    new_dat)
-)
-  #     dat<-dplyr::bind_rows(local_data, new_dat)
-#     readr::write_csv(dat,count_file)
-#     return(dat)
-#   }
-#   else{
-#     return(local_data)
-#   }
+  # Try to read
+  new_dat <- tryCatch(
+    {
+      dat <- readr::read_csv(
+        full_url,
+        col_types = readr::cols(CountDate = readr::col_date(format = "%m/%d/%Y"))
+      )
+
+      if (nrow(dat) == 0) {
+        stop("Read succeeded but returned 0 rows")
+      }
+
+      dat |>
+        dplyr::select(CountDate, AdultChinook, JackChinook) |>
+        dplyr::mutate(
+          year = lubridate::year(.data$CountDate),
+          yday = lubridate::yday(.data$CountDate),
+          month = lubridate::month(.data$CountDate),
+          mday = lubridate::mday(.data$CountDate),
+          season = dplyr::case_when(
+            .data$month >= 8 ~ "fall",
+            (.data$month == 7 | (.data$month == 6 & .data$mday > 15)) ~ "summer",
+            .data$month >= 3 ~ "spring",
+            TRUE ~ "Winter?"
+          )
+        )
+    },
+    error = function(e) {
+      stop("Failed to read from FPC: ", conditionMessage(e))
+    }
+  )
+
+  dplyr::bind_rows(past_bon_cnts, new_dat)
 }
 
 
@@ -475,24 +472,35 @@ cnts_for_mod_fun<-function(forecastdate,Bon_cnts){
 }
 
 
-retry_get_data <- function(expr, max_tries = 6, name = "data") {
-  result <- data.frame()
+retry_get_data <- function(expr, max_tries = 3, name = "data", wait_sec = 60) {
   num_tries <- 0
+  result <- NULL
 
   while (num_tries < max_tries) {
+    num_tries <- num_tries + 1
+    message(sprintf("Attempt %d to get %s ...", num_tries, name))
+
     attempt <- try(eval(expr), silent = TRUE)
 
-    if (is.data.frame(attempt) && nrow(attempt) > 0) {
+    if (inherits(attempt, "try-error")) {
+      message(" -> Failed with error: ", conditionMessage(attr(attempt, "condition")))
+    } else if (is.data.frame(attempt) && nrow(attempt) > 0) {
+      message(" -> Success on attempt ", num_tries)
       result <- attempt
       break
+    } else {
+      message(" -> Returned empty result.")
     }
 
-    num_tries <- num_tries + 1
+    if (num_tries < max_tries) {
+      message("Waiting ", wait_sec, " seconds before retry...")
+      Sys.sleep(wait_sec)
+    }
   }
 
-  if (nrow(result) == 0) {
-    warning(sprintf("Failed to get %s after %d attempts.", name, max_tries))
+  if (is.null(result)) {
+    stop(sprintf("Failed to get %s after %d attempts.", name, max_tries))
   }
 
-  return(result)
+  result
 }

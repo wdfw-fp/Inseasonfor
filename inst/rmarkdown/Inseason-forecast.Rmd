@@ -92,8 +92,6 @@ Fall_split_cnts <- retry_get_data(
 
 
 
-
-
 ```{r plots_n_stuff, echo=FALSE, results='asis',warning=FALSE,message=FALSE}
 cat("# {.tabset}","\n\n")
 

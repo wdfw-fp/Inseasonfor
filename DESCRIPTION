@@ -17,6 +17,7 @@ Imports:
     ggplot2,
     gt,
     here,
+    httr2,
     lubridate,
     magrittr,
     pkgdown,
