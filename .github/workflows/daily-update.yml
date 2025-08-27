@@ -5,8 +5,8 @@ on:
   workflow_dispatch: {}
   # daily runs
   schedule:
-    - cron: '0 14 * * *'  # 7am Pacific
-    # - cron: '0 15 * * *'  # 8am Pacific
+    - cron: '15 14 * * *'  # 7am Pacific
+    - cron: '0 15 * * *'  # 8am Pacific
 permissions:
   contents: write
 
@@ -65,16 +65,16 @@ jobs:
       # 6. render the rmarkdown
       - name: Render the report using custom script (with retries)
         run: |
-          for i in 1 2 3 4; do
+          for i in 1 2 3; do
             echo "Attempt $i: rendering report..."
             if Rscript inst/scripts/run_render.R; then
               echo "Render succeeded on attempt $i"
               break
             fi
             echo "Render failed on attempt $i"
-            if [ $i -lt 4 ]; then
-              echo "Retrying in 5 minutes..."
-              sleep 300
+            if [ $i -lt 3 ]; then
+              echo "Retrying in 2 minutes..."
+              sleep 120
             else
               echo "All attempts failed."
               exit 1
