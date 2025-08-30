@@ -71,13 +71,13 @@ bon_dat_fun <- function(pred_date = NULL,
   }
 
   full_url <- glue::glue("{url}_salmon_getresults.php?dam=BON&sdate={sdate}&edate={edate}")
-  cat("::notice::Checking URL: ", full_url, "\n", sep = "")
+  gh_log("notice", "Checking URL: ", full_url)
 
-  # --- HTTP status check with httr2 (or switch to httr if you prefer) ---
+  # --- HTTP status check with httr2 (swap to httr if preferred) ---
   resp <- httr2::request(full_url) |> httr2::req_perform()
   status <- httr2::resp_status(resp)
   if (status != 200) {
-    cat("::error::FPC returned HTTP status ", status, " for URL: ", full_url, "\n", sep = "")
+    gh_log("error", "FPC returned HTTP status ", status, " for URL: ", full_url)
     stop("FPC returned HTTP status ", status)
   }
 
@@ -90,9 +90,11 @@ bon_dat_fun <- function(pred_date = NULL,
       )
 
       if (nrow(dat) == 0) {
-        cat("::error::Read succeeded but returned 0 rows: ", full_url, "\n", sep = "")
+        gh_log("error", "Read succeeded but returned 0 rows: ", full_url)
         stop("Read succeeded but returned 0 rows")
       }
+
+      gh_log("notice", "Successfully read ", nrow(dat), " rows from FPC")
 
       dat |>
         dplyr::select(CountDate, AdultChinook, JackChinook) |>
@@ -110,7 +112,7 @@ bon_dat_fun <- function(pred_date = NULL,
         )
     },
     error = function(e) {
-      cat("::error::Failed to parse CSV from FPC: ", conditionMessage(e), "\n", sep = "")
+      gh_log("error", "Failed to parse CSV from FPC: ", conditionMessage(e))
       stop("Failed to parse CSV from FPC: ", conditionMessage(e))
     }
   )
@@ -470,37 +472,44 @@ cnts_for_mod_fun<-function(forecastdate,Bon_cnts){
 }
 
 
-retry_get_data <- function(expr, max_tries = 3, name = "data", wait_sec = 60) {
+retry_get_data <- function(expr, max_tries = 6, name = "data", wait_sec = 600) {
   num_tries <- 0
   result <- NULL
 
   while (num_tries < max_tries) {
     num_tries <- num_tries + 1
-    cat(sprintf("::warning::Attempt %d to get %s ...\n", num_tries, name))
+    gh_log("notice", sprintf("Attempt %d to get %s ...", num_tries, name))
 
     attempt <- try(eval(expr), silent = TRUE)
 
     if (inherits(attempt, "try-error")) {
       err_msg <- conditionMessage(attr(attempt, "condition"))
-      cat("::warning:: -> Failed with error: ", err_msg, "\n", sep = "")
+      gh_log("warning", " -> Failed with error: ", err_msg)
     } else if (is.data.frame(attempt) && nrow(attempt) > 0) {
-      cat(sprintf("::notice:: -> Success on attempt %d\n", num_tries))
+      gh_log("notice", sprintf(" -> Success on attempt %d", num_tries))
       result <- attempt
       break
     } else {
-      cat("::warning:: -> Returned empty result.\n")
+      gh_log("warning", " -> Returned empty result.")
     }
 
     if (num_tries < max_tries) {
-      cat(sprintf("::notice::Waiting %d seconds before retry...\n", wait_sec))
+      gh_log("notice", sprintf("Waiting %d seconds before retry...", wait_sec))
       Sys.sleep(wait_sec)
     }
   }
 
   if (is.null(result)) {
-    cat(sprintf("::error::Failed to get %s after %d attempts.\n", name, max_tries))
+    gh_log("error", sprintf("Failed to get %s after %d attempts.", name, max_tries))
     stop(sprintf("Failed to get %s after %d attempts.", name, max_tries))
   }
 
   result
+}
+
+
+gh_log <- function(type = c("notice", "warning", "error"), ...) {
+  type <- match.arg(type)
+  txt <- paste0("::", type, "::", paste(..., collapse = ""))
+  cat(txt, "\n", file = stderr())  # goes to stderr -> Actions logs
 }
