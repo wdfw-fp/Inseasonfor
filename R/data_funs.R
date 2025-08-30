@@ -55,38 +55,33 @@ chk_season<-function(day){
 #'
 #' bon_dat_fun()
 #'
-bon_dat_fun<-function(pred_date=NULL,
-                      sdate=NULL,
-                      past_bon_cnts=NULL,
-                      # count_file=NULL,
-                      url = "https://www.fpc.org/adults/R_coeadultcount_runsum"){
+bon_dat_fun <- function(pred_date = NULL,
+                        sdate = NULL,
+                        past_bon_cnts = NULL,
+                        url = "https://www.fpc.org/adults/R_coeadultcount_runsum") {
 
-
-
-
-  if(is.null(sdate)&!is.null(past_bon_cnts)){
-    sdate<-max(past_bon_cnts$CountDate)+1
+  if (is.null(sdate) & !is.null(past_bon_cnts)) {
+    sdate <- max(past_bon_cnts$CountDate) + 1
   }
-    # }
 
-  if(is.null(pred_date)){
-    edate<-Sys.Date()+2
-  } else{
-    edate<-pred_date
+  if (is.null(pred_date)) {
+    edate <- Sys.Date() + 2
+  } else {
+    edate <- pred_date
   }
 
   full_url <- glue::glue("{url}_salmon_getresults.php?dam=BON&sdate={sdate}&edate={edate}")
-  message("Attempting to read: ", full_url)
+  cat("::notice::Checking URL: ", full_url, "\n", sep = "")
 
-  # --- Check HTTP status before download ---
+  # --- HTTP status check with httr2 (or switch to httr if you prefer) ---
   resp <- httr2::request(full_url) |> httr2::req_perform()
   status <- httr2::resp_status(resp)
   if (status != 200) {
-    stop("FPC returned HTTP status ", status, " for URL: ", full_url)
+    cat("::error::FPC returned HTTP status ", status, " for URL: ", full_url, "\n", sep = "")
+    stop("FPC returned HTTP status ", status)
   }
 
-
-  # Try to read
+  # --- Read data ---
   new_dat <- tryCatch(
     {
       dat <- readr::read_csv(
@@ -95,6 +90,7 @@ bon_dat_fun<-function(pred_date=NULL,
       )
 
       if (nrow(dat) == 0) {
+        cat("::error::Read succeeded but returned 0 rows: ", full_url, "\n", sep = "")
         stop("Read succeeded but returned 0 rows")
       }
 
@@ -114,12 +110,14 @@ bon_dat_fun<-function(pred_date=NULL,
         )
     },
     error = function(e) {
-      stop("Failed to read from FPC: ", conditionMessage(e))
+      cat("::error::Failed to parse CSV from FPC: ", conditionMessage(e), "\n", sep = "")
+      stop("Failed to parse CSV from FPC: ", conditionMessage(e))
     }
   )
 
   dplyr::bind_rows(past_bon_cnts, new_dat)
 }
+
 
 
 
@@ -478,27 +476,29 @@ retry_get_data <- function(expr, max_tries = 3, name = "data", wait_sec = 60) {
 
   while (num_tries < max_tries) {
     num_tries <- num_tries + 1
-    message(sprintf("Attempt %d to get %s ...", num_tries, name))
+    cat(sprintf("::warning::Attempt %d to get %s ...\n", num_tries, name))
 
     attempt <- try(eval(expr), silent = TRUE)
 
     if (inherits(attempt, "try-error")) {
-      message(" -> Failed with error: ", conditionMessage(attr(attempt, "condition")))
+      err_msg <- conditionMessage(attr(attempt, "condition"))
+      cat("::warning:: -> Failed with error: ", err_msg, "\n", sep = "")
     } else if (is.data.frame(attempt) && nrow(attempt) > 0) {
-      message(" -> Success on attempt ", num_tries)
+      cat(sprintf("::notice:: -> Success on attempt %d\n", num_tries))
       result <- attempt
       break
     } else {
-      message(" -> Returned empty result.")
+      cat("::warning:: -> Returned empty result.\n")
     }
 
     if (num_tries < max_tries) {
-      message("Waiting ", wait_sec, " seconds before retry...")
+      cat(sprintf("::notice::Waiting %d seconds before retry...\n", wait_sec))
       Sys.sleep(wait_sec)
     }
   }
 
   if (is.null(result)) {
+    cat(sprintf("::error::Failed to get %s after %d attempts.\n", name, max_tries))
     stop(sprintf("Failed to get %s after %d attempts.", name, max_tries))
   }
 
