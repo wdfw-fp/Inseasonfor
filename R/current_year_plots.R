@@ -26,27 +26,28 @@ current_yr<- dat |>
 }
 
 
-current_year_cnts_plot<-function(env_dat,Bon_ch_year){
+current_year_cnts_plot<-function(env_dat,Bon_ch_year,cur_yr){
 
-  cur_yr<-min(Bon_ch_year$year)
+  # cur_yr<-min(Bon_ch_year$year)
+  # cur_yr <- lubridate::year(forecastdate)
   flow_temp_dat2<-add_10_yr_env_fun(env_dat,cur_yr)
 
   p<-
-    flow_temp_dat2 |>
-    dplyr::mutate(`Flow (kcfs)`=`Flow (kcfs)`/1000) |>
-    dplyr::inner_join(
-      Bon_ch_year |>
-        dplyr::rename(!!as.character(cur_yr) := AdultChinook) |>
-        dplyr::select(
-          Date = CountDate,
-          !!as.character(cur_yr),
-          `10yr ave.` = Ave_10yr_daily_cnt,
-          month,
-          md = mday
-        )|>
-        tidyr::pivot_longer(c(!!as.character(cur_yr),`10yr ave.`), names_to = "type",values_to = "Adult count")
+    Bon_ch_year |>
+    dplyr::rename(!!as.character(cur_yr) := AdultChinook) |>
+    dplyr::select(
+      Date = CountDate,
+      !!as.character(cur_yr),
+      `10yr ave.` = Ave_10yr_daily_cnt,
+      month,
+      md = mday
+    )|>
+    tidyr::pivot_longer(c(!!as.character(cur_yr),`10yr ave.`), names_to = "type",values_to = "Adult count") |>
+    dplyr::left_join(
+      flow_temp_dat2 |>
+    dplyr::mutate(`Flow (kcfs)`=`Flow (kcfs)`/1000)
     ) |>
-    tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value")  |>
+      tidyr::pivot_longer(cols=c(`Adult count`, `Flow (kcfs)`, `River temp. (F)`),names_to="Param",values_to="Value")  |>
     dplyr::arrange(type) |>
     ggplot2::ggplot(ggplot2::aes(x=Date,y=Value,col=type))+ggplot2::geom_line()+ ggplot2::geom_point(size=2.5
       ) + ggplot2::facet_wrap(~Param,ncol=1,scales="free_y") +
@@ -103,13 +104,13 @@ summary_plot_tabs<-function(flow_temp_dat1,Bon_ch,forecastdate){
 
   Bon_ch_year<-Bon_ch |> dplyr::filter(year==for_year)|>
     dplyr::filter(month>=3) |>
-    dplyr::mutate(AdultChinook=ifelse(CountDate>forecastdate,NA,AdultChinook))
+    dplyr::mutate(AdultChinook=ifelse(CountDate>forecastdate,NA_real_,AdultChinook))
 
 
 cat("##### {.tabset}","\n\n")
 
 cat("###### Current year","\n\n")
-current_year_cnts_plot(flow_temp_dat1,Bon_ch_year)
+current_year_cnts_plot(flow_temp_dat1,Bon_ch_year,for_year)
 cat("\n\n")
 
 cat("###### Percent complete","\n\n")
