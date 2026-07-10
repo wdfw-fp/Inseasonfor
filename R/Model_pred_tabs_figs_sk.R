@@ -97,6 +97,7 @@ mod_wrapper_fun_sk<-function(pred_date,Bon_cnts,flow_temp_dat,#ocean_cov,
   # browser()
 
   captured_output2 <- capture.output({ # to capture printed statements and prevent them from going in the rendered output
+    suppressWarnings(suppressMessages({
     model_results<-   mod_results_sk(pred_date  = pred_date,
                                   Count_dat = Bon_cnts,
                                   River_dat = flow_temp_dat,
@@ -104,6 +105,7 @@ mod_wrapper_fun_sk<-function(pred_date,Bon_cnts,flow_temp_dat,#ocean_cov,
                                   Bon_sk_year = Bon_sk_year,
                                   write_local=write_local,
                                   forecast_log_sd = 0.6)
+    }))
   })
 
   mod_figs_tabs<-pred_tabs_fig_sk(pred_date=pred_date,model_results)

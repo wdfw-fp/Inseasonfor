@@ -71,9 +71,9 @@ fit_joint_likelihood<-function(dat,forecast,forecast_log_sd){
 
   RTMB_NLL<-Inseasonfor(RTMB_data)
 
-  mod_obj<- RTMB::MakeADFun(RTMB_NLL,RTMB_params,random=c("year_eff"))
+  mod_obj<- RTMB::MakeADFun(RTMB_NLL,RTMB_params,random=c("year_eff"),silent=TRUE)
 
-  opt <- nlminb(mod_obj$par, mod_obj$fn, mod_obj$gr)
+  opt <- nlminb(mod_obj$par, mod_obj$fn, mod_obj$gr,trace=0)
 
   sdr <- RTMB::sdreport(mod_obj)
 
